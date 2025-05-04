@@ -1,0 +1,254 @@
+In this video, We will code the service layer of our application. We will be developing two service methods from scratch. We will integrate the spring mail API with one of our service methods, which will help us to send emails to our application users.
+
+//Let's create a servie layer which will do calculation and give result, Result can be sent in email.
+
+So, inorder to send email we need some kind of API: class called JavaMailSenderImpl.
+
+Yes! Learning Jakarta Mail first will definitely help you understand how spring-boot-starter-mail works under the hood.
+🔥 Why?
+Spring Boot’s JavaMailSender (which spring-boot-starter-mail provides) is essentially a wrapper around Jakarta Mail. If you understand Jakarta Mail, you'll:
+✅ Know how email sending works at a lower level.
+✅ Understand how properties like SMTP authentication, TLS, and session management work.
+✅ Be able to debug and configure email sending in Spring Boot more effectively.
+
+🎯 Final Recommendation
+Yes, learn Jakarta Mail first if you want a solid foundation! It’ll make Spring Boot’s email system feel much easier later. Let me know if you want a structured learning plan! 🚀
+
+//first let's plan before coding:
+
+USING JavaMailSenderImpl
+
+//setting up email provider information
+host: smtp.gmail.com
+userName: lmilan667@gmail.com
+password: ASBJASHA
+port: 587
+
+How to configure make link of email? By using JavaMailSenderImpl. Once configuration is done,create an email.
+
+//Constructing email/which one to send
+SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+
+simpleMailMessage.setTo("lamameelan32@gmail.com");
+simpleMailMessage.setSubject("Mail Subject");
+simpleMailMessage.setText("body_textdetails");
+
+once this object is ready.we can use this object to send via javaMailSender.send(simpleMailMessage); And Email will be sent.
+
+//NOW,LET'S IMPLEMENT SPRING MAIL API
+
+Add this two dependencies:
+
+//MailSender available here
+<dependency>
+    <groupId>jakarta.mail</groupId>
+    <artifactId>jakarta.mail-api</artifactId>
+    <version>2.1.3</version>
+</dependency>
+
+//SimpleMailMessage available here
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context-support</artifactId>
+    <version>6.2.2</version>
+</dependency>
+
+ 
+// In Config File
+
+@Bean
+    public JavaMailSender ConfigureJavaMailSender() {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost("smtp.gmail.com");
+        mailSender.setPort(587);
+        mailSender.setUsername("lmilan667@gmail.com");
+        mailSender.setPassword("9863837952");
+
+        //setting properties because of gmail security
+        Properties mailProperties = new Properties();
+        mailProperties.put("mail.smtp.starttls.enable", "true");
+        mailProperties.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+
+        mailSender.setJavaMailProperties(mailProperties);
+
+        return mailSender;
+    }
+
+// Gmail is very secure. so it need to turn on the less secure app in google itself inorder to use.
+
+So, use this: If anyone facing the issue with javax.mail.AuthenticationFailedException: 535-5.7.8 Username and Password not accepted exception . Below is the solution
+
+Google stopped supporting "Less Secure Apps" now
+
+One of the alternatives to solve this problem is to use 2-Step Verification and generate app password:
+
+    Google Account -> Security -> 2-Step Verification -> Input password as asked -> Turn ON (you could use SMS to get Gmail code to activate 2-Step Verification)
+    Google Account -> Security -> App password -> Input password as asked -> Select the app and device... -> e.g. Other(Custom name) -> Input app name e.g. MyApp -> Generate
+    Copy a 16-character password
+    Use a 16-character password with Gmail username in your application
+
+Source: Stack overflow
+
+//
+In Spring, JavaMailSender is an interface that defines the contract for sending email messages. It declares methods for creating and sending MIME messages, among other tasks.
+On the other hand, JavaMailSenderImpl is the default concrete implementation of the JavaMailSender interface. It encapsulates the actual logic for sending emails using the JavaMail API and allows you to configure properties such as the SMTP server’s host, port, username, password, and other settings.
+
+//Key Points
+JavaMailSender (Interface):
+- Defines methods like createMimeMessage(), send(MimeMessage), etc.
+- Provides a standard API for email sending.
+
+JavaMailSenderImpl (Implementation):
+- Implements the methods defined in JavaMailSender.
+- Handles configuration details (e.g., SMTP server settings).
+- Is typically configured as a Spring bean, and when you autowire a JavaMailSender, you usually get an instance of JavaMailSenderImpl.
+
+In summary, you use the JavaMailSender interface in your code to remain decoupled from the actual implementation, while JavaMailSenderImpl is the concrete class that carries out the work of sending the email.
+
+-------------------------------------------------------------------------
+Add this method in EMAIL CONTROLLER:
+ @Autowired
+ private LCAppEmailService lcAppEmailService;
+
+ @RequestMapping("/process-email")
+public String processEmail(@SessionAttribute("userInfo") UserInfoDTO userInfoDTO,)
+
+//getting the user email and username from userInfoDTO and capture result too
+lcAppEmailService.sendEmail(emailDTO.getUserEmail(), "Friends");
+
+// Let's create a LCAppEmailService interface with a method sendEmail(String userEmail, String result);
+
+public interface LCAppEmailService {
+    public void sendEmail(String userName, String userEmail, String result);
+}
+
+//LET'S CREATE A SERVICE LAYER TO SEPARATE OUR BUSINESS LOGIC
+//We cannot use @Component in service class but use @Service: They are just same does same work.
+
+@Service
+public class LCAppEmailServiceImpl implements LCAppEmailService {
+
+    //FETCHING THE OBJECT OF MAIL SENDER FROM CONFIG CLASS
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Override
+    public void sendEmail(String userName, String userEmail, String result) {
+        //create email
+        SimpleMailMessage newEmail = new SimpleMailMessage();
+        newEmail.setTo(userEmail); //user-email
+        newEmail.setSubject("Love Calculator Application Result"); // email subject
+        newEmail.setText("Hi " + userName + "!  The result predicted by love calculator is " + result);
+
+        mailSender.send(newEmail);
+
+    }
+}
+
+-------------------------------------------------------------------------
+How to do form validaton if @ModelAttribute is not there or working?
+
+Ans: we should use @Valid USerInfoDTO userInfoDto before DTO, instead of Model.
+Spring isn't adding it.
+
+So,We can add manually:
+model.addAtttribute(BindingResult.MODEL_KEY_PREFIX + "userInfo", result);
+
+------------------------------------------------------------------------- 
+HANDLE USERS WITH COOKIES DISABLED.
+
+we have used @SessionAttributes to capture information, so it won't work.
+It'll give us error/exception: missing sessionAttribute
+
+Hint: Use HttpSession, it won't throw exception if the session object is not found. It will return null instead.
+code if session is null in normal HttpSession, ask user to allow cookies
+
+if(session.getAttribute("userInfo) == null){
+//ask user to allow cookies
+}
+
+1. Check if the user disabled the cookies by fetching any session attributes from the session.
+2. In any controller, add a condition to check if the retrieved session value is null
+3. If it's null, then ask the user to turn on the cookies(by directing them to another view)
+
+------------------------------------------------------------------------- 
+
+// THERE'S AN ANOTHER WAY WHICH IS CALLED URL ENCODING.
+Only if cookies are disabled by user then add JSESSION id automatically in the url itself.Then we can track the session
+
+- What is URL Encoding?
+URL encoding is a way to convert special characters in a URL into a format that can be safely transmitted over the internet. For example, spaces are replaced with %20, and special symbols like & or = are converted into their encoded equivalents.
+
+Example: Hello World! -> Hello%20World%21
+
+- How JSESSIONID is Added to the URL?
+Normally, web applications use cookies to track user sessions. The JSESSIONID is a unique identifier assigned to a user's session by a Java web server (like Tomcat).
+
+If cookies are enabled, the JSESSIONID is stored in the browser's cookies.
+If cookies are disabled, the JSESSIONID must be included in the URL itself. This process is called URL rewriting.
+
+- Example of URL with JSESSIONID
+If cookies are disabled, the URL might look like this with JSESSIONID:
+
+https://example.com/dashboard;jsessionid=ABC123XYZ
+Here, ABC123XYZ is the unique session ID assigned to the user. This allows the server to track the user's session without cookies.
+
+Another way is using:
+
+//c:url of JSTL will encode our url and add jsession id with every request and track user
+<a href="<c:url value="/sendEmail"/>">Send Result to Email</a>
+
+------------------------------------------------------------------------- 
+
+// IN servlet:
+
+@WebServlet("/SessionExample")
+public class SessionExample extends HttpServlet {
+protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+	// Get or create a session
+        HttpSession session = request.getSession();
+        
+        // Set an attribute to store some session data
+        session.setAttribute("username", "JohnDoe");
+           
+ 	// If cookies are disabled, encode the URL with JSESSIONID
+        String encodedURL = response.encodeURL("WelcomeServlet");
+
+	out.println("<p>Your session ID: " + session.getId() + "</p>");
+        out.println("<p><a href='" + encodedURL + "'>Go to Welcome Page</a></p>");
+}
+
+
+//Another servlet:
+
+@WebServlet("/WelcomeServlet")
+  if (session != null) {
+            // Retrieve the session attribute
+            String username = (String) session.getAttribute("username")
+            out.println("<h2>Welcome, " + username + "!</h2>");
+ 	    out.println("<p>Your session is active.</p>");
+      } else {
+            out.println("<h2>Session Expired or Not Found</h2>");
+
+How It Works:
+1. User visits /SessionExample
+
+- A session is created.
+- The response contains a link to /WelcomeServlet.
+- If cookies are disabled, the URL automatically includes JSESSIONID.
+
+2.User clicks the link
+
+- The session ID is retrieved from the URL.
+- The server recognizes the user session and displays a message.
+
+Key Part:
+String encodedURL = response.encodeURL("WelcomeServlet");
+
+- If cookies are enabled, this returns a normal URL.
+- If cookies are disabled, it appends JSESSIONID automatically
+
+
+
+

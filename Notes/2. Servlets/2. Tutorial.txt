@@ -1,0 +1,97 @@
+//06-Passing multiple parameters via form and capturing them same as previous
+
+----
+Now, passing the value from radio button passed in html.
+<input type="radio" name = "prof" value="Student"/> Student </input>
+<input type="radio" name = "prof" value="Developer"/> Developer </input>
+
+String profession = request.getParameter("prof");
+
+Here we capture the name from the radio button and pass its value in the request body.
+
+//
+    <select name = "location" multiple size="3">
+in select html also we capture its name in request body.
+
+If user passes multiple parameters then capture it in array and use getParameterValues()
+
+String[] location = request.getParameterValues("location");
+
+   out.println("You're living in a " + location.length + " location");
+
+    for(int i=0; i<location.length; i++) {
+       out.println(location[i]);
+    }
+
+
+//07- UNDERSTANDING GET AND POST
+
+doGet() is called when GET method issued to servlet.
+doPost() is called when POST method issued to servlet.
+
+When we want to GET some data in application from server based on the parameter passed.
+
+POST Method is used when you want to submit in server. When using post method it causes application to make some changes to data.
+
+-- When using GET method in form the value submitted will be shown in url.
+http://localhost:8080/JavaBrains_Servlets_war_exploded/xmlServlet?userName=Milan&fullName=Milan+Tamang&prof=Developer&location=Las+Vegas
+
+And when refreshing the page while using GET, it'll refresh and fetch data.And don't ask for confirmation.
+It is because GET method is used to retrieve data from database and display it.
+
+-- When using POST method we cannot see the value submitted in the url as value is passed via request http body.
+And when refreshing the page it'll ask confirmation to continue or cancel.
+
+This is because of the PROTOCOL: When you use GET method when you simply are fetching data but When you are using POST method you want some data change to happen and the browser page will inform us if you wanna change it or not. 
+
+--When you're logging in: using POST doesnt show username password in url but using get shows in url.
+
+
+//08 - Request, Session and Context Part 1
+
+//REQUEST AND SESSION OBJECT
+
+request and response objects. Servlet itself is an object.
+When are these objects created and destroyed? - Servlet runs in the Tomcat container.
+It creates and destory the objects.
+Request and response object are created per access/refresh. 
+Servlet object - Not created per access. Different request have different servlets threads not instance.
+HTTP - stateless protocol (as it doesn't remeber the parameters we pass) which means one data sent through one url request won't be there for another url request.
+How to make our servlet remember us?
+If we are in login system,shopping carts and it ask user for userId eachtime, so to save the user data in the server memory so we use SESSION OBJECT.And use that to save data values and retrive the same data values in excecution of another servlet.
+
+String name = request.getParameter("name");
+
+//Creating session object
+HttpSession session = request.getSession();
+
+//Saving in the session
+session.setAttribute("savedName", name);
+
+//Session returns object so casting in string
+        out.println("Session parameter has name as " + (String)session.getAttribute("savedName"));
+
+Now, even if we don't pass the value and refresh the page it'll give us the value passed previosuly which is stored in session.
+
+
+//08 - Request, Session and Context Part 2
+ 
+Session object one per user/machine provided by tomcat.
+Object available across requests.
+Every request object has a handle to the session object- request.getSession().
+
+Now, what if we want an object that can be used different user or browsers?
+Now inorder to use/save for different user/browser:
+-Across the entire application
+-Shared accross servlets and users
+-Initialization code - If we have a database connection and make that database connection is used by servlets to connect
+
+-Common bulletion board: USE CONTEXT OBJECT for different user or browsers
+ ServletContext context = request.getServletContext();
+ context.setAttribute("savedName", name);
+
+When using in same browser session and context will be saved.
+Now, when we use the same url in the another browser than request and session value will be null but the context value will be there.
+
+
+

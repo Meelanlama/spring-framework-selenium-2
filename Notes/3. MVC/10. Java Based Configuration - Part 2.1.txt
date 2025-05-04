@@ -1,0 +1,55 @@
+Deploy our webapplication to Tomcat without WEB.XML.
+
+1. Where we have our configured DispatcherServlet?
+In WEB.XML FILE.
+
+2. What is a WEB.XML File?
+It's a deployment descriptor which is a config file for our web-app that will be automatically picked by our webserver like tomcat and read configuration.
+-Here we define classes,resource and the configuration of application.
+
+-The web server uses these information to serve a web request.
+-When the web server recevies a web request, it uses the deployment descriptor's url mapping to send the request to a specific servlet which can handle that request. (Means, in web.xml dispatcher servlet is mapped with url eg: /home.com/*, tomcat will read this url mapping and whenever request is incoming to that certain url then it'll send that request to mapped servlet and handle that request.
+-Our controllers are also servlet.
+
+3. Who is reading the WEB.XML file?
+Our webserver(tomcat) is reading it to fetch into configuration file of the developer.
+
+4. What kind of configuration we can do in WEB.XML?
+Configure servlet, url mappings, filters, security, error handling(like whenever error happens we can configure that error in page.)
+
+5. What will happen if we Delete WEB.XML?
+Your web project will still run without a probelm.
+
+6. Can we deploy/run a web app without a web.xml file?
+Yes, this file is optional from servlet 3.0 as it'll have a servlet container.
+
+7.How can i configure important info about my web app?
+By using Java Annotation
+
+-------
+
+SPRING MVC JAVA BASED CONFIGURATION
+
+1.How a class will automatically detected by tomcat(Servlet container) like web.xml
+- WebApplicationInitializer gives it a superpower to detect it.
+- call back method is called automatically
+
+2. What is a servletContext(WebApplicationInitializer is also servletcontext)?
+It's an interface, the servlet container gives the implementation for servlet context interface. 
+The servlet container(Tomcat) is going to create servletContext object automatically.
+The servletContext object is created one per web application.
+
+
+class HiTomcatPleasePickMe implements WebApplicationInitializer{
+@Override
+void onStartup(ServletContext servletContext){
+//create dispatcher servlet here
+//register dispatcher servlet with servletContext
+
+}
+} 
+
+---
+
+FYI: DispatcherServlet has it's own web application context.
+

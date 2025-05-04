@@ -1,0 +1,43 @@
+@Controller
+public class MomController {}
+Now that class becomes controller.
+
+Now we add  this tag in our frontcontroller xml body
+
+    <context:component-scan base-package="controllers"/>
+    <context:annotation-config/>
+
+
+Now,when this tag scans the components of the class in that package and will place those objects/bean inside the spring container.
+
+@Controller and @Component is same. And creates bean of mom and initialized inside the container.
+
+Spring will automatically initializse the class having a @Controller annotation and register that class with the spring container.
+
+
+//home.com/sugar
+
+@Controller
+public class MomController {
+
+    @ResponseBody
+    @RequestMapping("/sugar")
+    public String giveSugar() {
+        return "ok,take this sugar";
+    }
+}
+
+@ResponseBody write the message in HTTP response.
+@RequestMapping("/sugar") is home.com/sugar and that method will return to that browser
+
+//home.com/football
+
+@Controller
+public class BroController {
+
+    @ResponseBody
+    @RequestMapping("/football")
+    public String giveFootball(){
+        return "Take this football";
+    }
+}

@@ -1,0 +1,165 @@
+As discussed, we are going to implement the spring mail API in our project. So to get started, we must develop an email screen first. 
+In this video, we are going to create the UI for the email form. 
+I am also going to explain, How to transfer data between different screens.
+In episode no 4, We learned how to use @RequestParam.
+Well, The @RequestParam will help, when you are receiving data through the query string. But imagine a URL "myUrl/{DynamicData1}/{DynamicData2}.
+How can we handle this kind of URL which contains dynamic data?
+Well, Today I will also give you an Introduction to @PathVariable. The @PathVariable will help you handle the URL containing dynamic data in it.
+Last but not least, I will also explain why it's not good to send data using URL. I will walk you through some scenarios, where sending data through URL can be a headache. (WHEN should we not transfer data through URL)
+
+⏱️TIMESTAMPS⏱️
+Introduction 00:00
+Requirement walkthrough 02:38
+Solving a Puzzle 26:21
+Sending data With URL 35:27
+@PathVariable 37:50
+Analyzing the problem of sending data through URL 50:4
+
+//
+Inorder to access/track the username in each view, we should add session management in controller.
+
+//Let's Design our email controller and email/result view
+
+Let's use "/${pageContext.request.contextPath/myUrl}" To get the context root dynamically: recommended approach
+
+Example: <a href="${pageContext.request.contextPath}/sendEmail">Send this result to Email</a>
+
+// 
+Making Email controller and view page
+
+@Controller
+public class EmailController {
+
+    @RequestMapping("/sendEmail")
+    public String sendEmail(@ModelAttribute("emailDto") EmailDTO emailDTO) {
+        return "send-email-page";
+    }
+
+    @RequestMapping("/process-email")
+    public String processEmail(@ModelAttribute("emailDto") EmailDTO emailDTO) {
+        return "process-email-page";
+    }
+}
+
+//
+<a href="${pageContext.request.contextPath}/sendEmail">Send this result to Email</a>
+
+//
+<h3>HI</h3>
+<h2>Send Result To Your Email </h2>
+
+<form:form action="process-email" method="get" modelAttribute="emailDto">
+
+<label>Enter Your Email: </label>
+  <form:input path="userEmail"/>
+  <input type="Submit" value="Send">
+
+</form:form>
+
+
+//
+  <title>Process Email</title>
+</head>
+<body>
+<h2>Hi</h2>
+
+<label>Email successfully sent to ${emailDto.userEmail}</label>
+
+-------------------------------------------------------------
+
+SECTION-II: SOLVING A TASK
+
+Right now, how we are transferring data?
+Using Model and request. Request of url will be handled by handler method/controller.And data transfer by query string.
+We are using model attribute to transfer data from controller to view. 
+The model is destroyed when request and response is done.
+So when you enter username and crsuhname and response is generated in view.It's model is destroyed. 
+
+Question: So how're you going to send/capture the data to next page?
+How can i get the username of result page in different view pages?
+
+Answer: 
+APPROACH I:
+Easiest solution is to send data with the URL.
+
+<a href="${pageContext.request.contextPath}/sendEmail/${userInfo.userName}">Send this result to Email</a> //username is sent to url
+http://localhost:8080/spring_love_calculator/sendEmail/Milan
+
+We'll get 404 error using this url because we don't have /sendEmail/Milan controller to handle. We only have /sendEmail. 
+
+{pageContext.request.contextPath}/sendEmail/userName=?${userInfo.userName} - This url will processed as query string and we don't get 404 error
+
+ 
+// INTRODUCING @PathVariable
+
+Question:
+So how are you going to capture the data from the url? Note that, here the userName is not a query string.
+
+Answer:
+Ah, I see! You're referring to capturing data from the URL path, not from the query string. In Spring MVC, you can retrieve data directly from the URL path using @PathVariable.
+
+1. Using @PathVariable:
+
+If your URL structure is something like:
+http://localhost:8080/spring_love_calculator/sendEmail/Milan
+
+Here, Milan is part of the URL path, not a query string.
+
+You can capture this data using @PathVariable like so:
+
+@Controller
+public class EmailController {
+
+    @RequestMapping("/sendEmail/{userName}")
+    public String sendEmail(@PathVariable("userName") String userName, Model model) {
+
+        model.addAttribute("emailDto", new EmailDTO());
+        model.addAttribute("userName", userName.toUpperCase());
+        return "send-email-page";
+    }
+
+<h2>Hi ${userName}</h2> //captured data from url and available in our view
+
+2. Multiple Path Variables: What if we have a bigger url
+
+If you have more complex URL patterns, for example:
+URL/{DynamicData1}/{DynamicData2}/{DynamicData3}/
+
+http://localhost:8080/spring_love_calculator/sendEmail/Milan/football
+
+You can capture multiple path variables like this: 
+Use MAP(key,value) instead of capturing in multiple variables.
+
+@Controller
+public class EmailController {
+
+    @GetMapping("/sendEmail/{userName}/{hobby}")
+    public String getUserDetails(@PathVariable Map<String,String> pathLists, Model model) {
+
+	String userName = pathLists.get("userName");
+	String hobby = pathLists.get("hobby");
+		        
+        model.addAttribute("emailDto", new EmailDTO());
+        model.addAttribute("userName", userName.toUpperCase());
+        model.addAttribute("hobby", hobby);
+
+        return "send-email-page";
+    }
+
+<h2>Hi ${userName}, Your hobby is ${hobby}</h2> //captured data from url and available in our view
+
+Summary
+-Path Variables are captured using @PathVariable when the data is embedded in the URL path itself, not the query string.
+-You define the path structure using curly braces {} in the URL, and Spring will automatically extract and pass them to your controller method.
+
+
+//Why should you think twice before sending data in the URL? It's not recommended.
+
+Answer: We need to attach the data in url again and again to show it in view page AND again i need to handle that data in that another controller(process-enmail) too like the sendEmail controller.
+If you send that url to the friend and he enters that url then it can be harmful as it can expose your banking,password.
+
+Sending data in the URL is not recommended due to security risks like visibility in the browser, potential interception in non-secure connections, URL length limitations, caching issues, and the possibility of search engine indexing. It's safer to send sensitive data in the request body (e.g., using POST).
+
+//If I will not send data with url, then how i will send data/access data inside multiple controllers / view?
+Session: Store data in the session, making it accessible across multiple requests and controllers.
+

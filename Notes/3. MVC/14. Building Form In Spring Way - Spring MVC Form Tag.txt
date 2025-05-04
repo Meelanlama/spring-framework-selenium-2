@@ -1,0 +1,53 @@
+ASSIGNMENT:
+1. BUILD A REGISTRATION PAGE USING SPRING NVC FORM TAGS:
+2. ONCE REGISTERED CAPTURE AND DISPLAY THE DATA
+
+
+//
+Task 1: Desgin a register page
+char[] array is best suitable for password type.
+
+path in form basically try to bind the data whenever we try to load that page.
+So, modelAttribute is needed to bind that data.
+
+- In country, Drop down won't be stored in array because we select only one value.
+- In hobby, Check boxes we can select many hobbies, so we array.
+
+In form get method to get query parameter in url. By default form will be in GET.
+
+
+//
+TASK 2: CAPTURE AND DISPLAY THE DATA IN ANOTHER VIEW
+
+<%--Calls getter method internally--%>
+<p>Your password is: ${captureInfo.password}</p>
+
+Your password is: [C@72f5d06b, 
+Your hobbies are: [Ljava.lang.String;@33fb0000
+
+We're getting object reference value from the character array of password and references of string in hobbies.
+
+So, iterate over the array using jstl tag. 
+using jstl for the array data iteration
+
+//
+<p>Your hobbies are:
+<c:forEach var="values" items="${captureInfo.hobbies}">
+${values}
+</c:forEach>
+</p>
+
+
+//
+Update dependency of jstl in pom.xml
+
+<dependency>
+            <groupId>jakarta.servlet.jsp.jstl</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+            <version>3.0.0</version>
+        </dependency>

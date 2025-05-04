@@ -1,0 +1,153 @@
+Using @ControllerAdvice in that class, All the @ModelAttribute model object of that class will be available everywhere.
+
+So, if we want to restrict the visibilty and use only where needed then use this:
+
+@ControllerAdvice(assignableTypes = TestController.class) //now, this class model object data will be only available here
+public class MyWebsiteController {
+
+We can use class name and pacakage name too. (basePackages = "com.milan.controllers1");
+
+//@ControllerAdvice is a specialization of @Component. So, when there's a component scanning by dispatcher servlet: Class with @ControllerAdvice will be also be detected.
+Whenever we are going to deploy our webapp. Spring will also create object for it and manage inside the container.
+
+EXAMPLE CODE:
+
+@ControllerAdvice
+public class Testing {
+
+    public Testing() {
+        System.out.println("Object created by spring");
+    }
+}
+
+//EXPLAINATION OF CODE:
+Now, Using @ControllerAdvice here, Testing Class will also be detected by Spring while scanning Component. The object of Testing class will be created by the Spring itself and managed by spring. Same as using the @Component. Now, when we run this. We can see the constructor of Testing() class print it as object will be created internally by spring.
+
+---------------------------------------------------------------------------------------------
+ 
+//SECTION - III : @ExceptionHandler and @ControllerAdvice
+
+SPRING MVC EXCEPTION HANDLING:
+
+Let's create a Class and I forget to give @Component in that class.
+
+//
+public class Info {
+    private String serverIp = "127.0.00.1";
+
+   //GETTERS SETTERS
+}
+
+// Inside the TestController
+
+    Info info;
+
+    System.out.println("Ip address of server is: " + info.getServerIp());
+
+As we have forget to add @Component in Info class, so spring won't create object for us. It'll give null pointer exception here.
+If we have forget to use @Autowired also then our website will give us internal server error.
+So we should handle this exception and give an error message.
+
+So, create a jsp page to display message and method inside TestController to show it:
+
+//
+ @ExceptionHandler(value = NullPointerException.class)
+    public String handleNullPointerException() {
+        return "null-pointer-page";
+    }
+
+    @ExceptionHandler(value = IOException.class)
+    public String handleIOException() {
+        return "null-pointer-page";
+    }
+
+These method will handle these exceptions and return that view page.
+
+But, what about other exceptions like Spring exception: bean creation exception?
+
+// So use Super class(Exception) to handle the exceptions:
+
+@ExceptionHandler(value = Exception.class)
+    public String handleExceptions() {
+        return "exception-page";
+    }
+
+So, this is a handler method for others exceptions and page saying: error.
+
+We should add @Component and @Autowired in Info info: otherwise server won't start so:
+Use this to throw error: so we can capture it and give view:
+	if (1 == 1) {
+            throw new RuntimeException();}
+
+---------------------------------------------------------------------------------------------
+
+// If you annotate the Info class with @Component, it will become a Spring-managed bean, meaning Spring will create and manage its instance in the application context. However, for it to be automatically injected into TestController, you must use @Autowired or constructor injection.
+
+ @Autowired // Required for field or constructor injection
+    public TestController(Info info) {
+        this.info = info;
+    }
+
+Explanation:
+- The @Component annotation registers Info as a Spring bean.
+- Spring does not automatically inject beans into other classes unless explicitly told to do so using @Autowired (or constructor injection, which is recommended and injected auto).
+- The correct way to inject the Info object is via constructor injection, which Spring automatically resolves.
+
+// Alternative (Field Injection - Not Recommended):
+
+@Autowired
+private Info info;
+
+This works but is not recommended because field injection makes unit testing harder and increases coupling.
+
+---------------------------------------------------------------------------------------------
+//GLOBAL EXCEPTION HANDLER: @ControllerAdvice, @ExceptionHandler
+
+If something went wrong in another Controller Class where we haven't handled that exception. So we should write the handler method to catch exception in each and every controller class.
+
+So, create a new class and use that class whenever we get exception and mark my class to be visible to all class by using @ControllerAdvice:
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    //Exception handler methods:
+    @ExceptionHandler(value = NullPointerException.class)
+    public String handleNullPointerException() {
+        return "null-pointer-page";
+    }
+
+    @ExceptionHandler(value = IOException.class)
+    public String handleIOException() {
+        return "null-pointer-page";
+    }
+
+    @ExceptionHandler(value = Exception.class)
+    public String handleExceptions() {
+        return "exception-page";
+    }
+}
+
+As previously, /testing controller will give us an exception and look for the handler method, we don't have handler method in that class. Again, it'll look for global exception handler method and it will find that method and use it to give us error page.
+
+---------------------------------------------------------------------------------------------
+
+SUMMARY: @ControllerAdvice with @InitBinder
+
+@ControllerAdvice: Model object/data of that class will be visible to any other class.
+@ExceptionHandler(value = Exception.class): Our method will handle the exception irrespective of the class if there's @ControllerAdvice annotated in class.
+@InitBinder: If i want DATE to be in that format("dd-MM-yy") then put that @InitBinder method put it in global (@ControllerAdvice) class and will work for all the other controller class.
+
+// Example:
+
+  @ControllerAdvice
+  public class GlobalDemo{
+
+  @InitBinder
+  public void dateBinder(WebDataBinder binder){
+     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy");
+     CustomDateEditor editor = new CustomDateEditor(dateFormat, true);
+     binder.registerCustomEditor(Date.class,editor);
+  }
+ }
+
+

@@ -1,0 +1,169 @@
+// INTRODUCING TO SPRING FRAMEWORK OWN VALIDATOR:
+
+Criteria: in register page
+Username cannot be empty/null and contain _ instead of space ex:meelan_lama7
+
+Example:
+
+public class UserNameValidator implements Validator {
+
+    @Override
+    //This methods check does the username validator can be applied/supports over a given DTO.
+    public boolean supports(Class<?> clazz) {
+        return RegisterInfoDTO.class.equals(clazz); // if we get the dto object like this through the supports method, at the time only our validator will be applied to DTO object.
+    }
+
+
+    @Override
+    // we need to write custom validation logic here
+    public void validate(Object object, Errors errors) {
+
+ 	//to check if userName field is null
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userName", "userName.empty" ,"User Name cannot empty");
+
+	//Now, implementing the 2nd requirement(cannot use space and use _ instead)
+	//String should contain _
+        //type casting Object type into dto type and getting username
+
+        String userName = ((RegisterInfoDTO) object).getUserName();
+        if(!userName.contains("_")){
+            errors.rejectValue("userName", "userName.invalid" ,"User Name should contain '_' ");
+        }
+    }
+}
+
+//To register this, register it in controller of initBinder() method 
+//The flow goes from controller to validator, once the validate method executes the controller's handler method will be executed.
+
+------ e
+SCENARIO II: REQUIREMENT
+-VALIDATE THE EMAIL TEXTBOX
+-EMAIL MUST NOT BE NULL OR EMPTY
+-Only allow the email with domain @seleniumexpress.com
+-LOAD THE ERROR MESSAGES FROM THE PROPERTIES FILE
+
+Example:
+
+emailMessages.properties file:
+email.required = Email is required
+email.invalidDomain = Email must be from the domain @seleniumexpress.com
+
+---------
+public class EmailValidator implements Validator {
+
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return RegisterInfoDTO.class.equals(clazz);
+    }
+
+    @Override
+    public void validate(Object object, Errors errors) {
+        RegisterInfoDTO dto = (RegisterInfoDTO) object;
+
+        // Fetch the nested DTO correctly
+        if (dto.getCommunicationDTO() == null || dto.getCommunicationDTO().getEmail() == null) {
+            errors.rejectValue("communicationDTO.email", "email.required");
+            return;
+        }
+
+        String email = dto.getCommunicationDTO().getEmail();
+
+        if (!email.endsWith("@seleniumexpress.com")) {
+            errors.rejectValue("communicationDTO.email", "email.invalidDomain");
+        }
+    }
+}
+
+//
+binder.addValidators(new EmailValidator());
+
+
+   // go to properties files to extract message, need to tell spring explicitly
+    @Bean
+   public MessageSource messageSource(){
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasenames("messages","phoneMessage","emailMessages"); // messages is a name of properties files name
+        return messageSource;
+    }
+
+----------------------------------------------------------------------
+Question: How will spring get the message from properties file?
+Answer:
+
+When you call errors.rejectValue("communicationDTO.email", "email.required") OR errors.rejectValue("communicationDTO.email", "email.invalidDomain") OR String message() default "{invalidAgeMessage}";
+
+Spring will do the following to fetch the message:
+
+Key Resolution: 🔑
+The string "email.required" is the message key. This key is used to look up the corresponding message in your properties files.
+
+Properties File Lookup: 📂
+Spring will check the message source (configured ResourceBundleMessageSource) for the key "email.required".
+It will look through the list of property files you have defined (like messages.properties, phoneMessage.properties, etc.).
+Locale-Based Lookup: 🌍
+If the user's locale is set (e.g., en_US or fr_FR), Spring will first try to find a locale-specific file (e.g., messages_fr.properties).
+If it doesn't find the message in a locale-specific file, it will fall back to the default messages.properties.
+Message Fetching: 📬
+Spring will retrieve the message associated with the key "email.required" from the appropriate property file.
+For example, if the key is in messages.properties, it might return "Email is required".
+Binding Result: ✅
+The error message (e.g., "Email is required") will be added to the BindingResult object, and it can be displayed in the view.
+Summary:
+errors.rejectValue("communicationDTO.email", "email.required") triggers a lookup for the key email.required in the properties files and resolves the message based on the current locale. Spring does this using the configured MessageSource 📜.
+
+---------------------------------------------------------------------------
+//Question:
+Can we manually call our validators without using @InitBinder method?
+Yes, in controller where there is @Valid and BindingResult.
+
+Example:
+EmailValidator validator = new EmailValidator();
+validator.validate(registerDto,result)
+
+Another way is using @Component in EmailValidator class, so we don't need to create the object ourselves as spring will create object for us and manage in container.
+
+@Autowired
+private EmailValidator validator; //creating emailvalidator reference and using @Autowired to inject the object.
+
+And if you're using @Component then add the EmailValidatorpackage/whole root sub pacakage in @ComponentScan in config file.
+
+//
+PLACEHOLDER: HOW TO USE IN .PROPERTIES FILE?
+Message Can be dynamically load in .properties file.
+
+--
+@NotEmpty(message = "{String.notEmpty}") 
+    private String name;
+
+ @Age(lower = 21, upper = 48)
+    private Integer age;
+
+@AssertTrue(message = "{termsAndConditionsMessage}")
+    private boolean termsAndConditions;
+
+//In messages.properties file:
+
+#KEY VALUE PAIR FOR ERROR MESSAGES
+age = User Age
+userName = Your Name
+name = Your Name
+crushName = Crush Name
+
+#0 = name: User Name or crushName = CrushName
+String.notEmpty = {0} cannot be empty.
+
+#0:for variable which will display the name we have declared in properties file it'll dynamically load
+# 1 and 2 for upper and lower for that
+invalidMessage = {0} should be between {2} - {1} characters.
+
+termsAndConditionsMessage = First you should agree to our terms and conditions.
+
+------------------------------------------------------------------------------
+//DEALING WITH TYPE MISMATCH PROBLEM: Example: Like we enter string in int type.
+
+It'll give this error in view: Failed to convert property value of type java.lang.String to required type java.lang.Integer for property age; For input string: "asaaa"
+
+//from error code: error type name
+// now using this we'll get this error message instead of previous default error message in view
+typeMismatch.java.lang.Integer = Should be a number 
+

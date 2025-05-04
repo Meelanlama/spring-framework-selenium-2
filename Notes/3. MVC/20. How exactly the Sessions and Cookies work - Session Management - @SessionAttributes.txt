@@ -1,0 +1,146 @@
+From this video onwards, I am going to cover session management from scratch. Let’s get it done step by step.
+STEP 1: I will give you the basics idea about cookies and sessions.
+STEP 2: I am going to implement cookies and session in our spring MVC / spring boot app
+STEP 3: I will explain to you the use of spring’s annotations like @CookieValue, @SessionAttributes, @SessionAttribute 
+STEP 4: I will introduce the conversational scope and we will have another video on @SessionAttribute and its uses (Episode 14)
+STEP 5: I will walk you through some advanced-level configuration for spring’s session management
+
+---------------------------------------------------------------------------------------------
+//Why we need cookies?
+
+We have client(Mine) machine and server(amazon) machine. So i need to connect to the server and send request to the server and when it accepts the request the server the processs/handle it and generate the view. After that,the connection between my computer and amazon server will be dropped because the connection is established with HTTP protocol. HTTP IS A STATELESS PROTOCOL. And when i again try to connect to the server, it'll be a new request and server won't know who i am.
+
+--
+If i added some items in amazon cart and after 2 hours again i connect to the amazon server it'll show that items. How is it tracking items and me? It's because of the COOKIES which helps to track user preferences. Whenever server is processing to generate view for user and also whatever items you're trying to add in cart it'll also generate cookies.Cookies is written in txt file(Like: this user is trying to buy camera). The server will response back with both the view and cookies back. The cookies get stored in client computer and again when i try to connect to server it'll also go to server and server will read it and generate the view along with new cookie if user preferece is changed. COOKIE is going back and forth between client and server.
+
+//Let's generate cookie like theory by using code. By storing username with cookie and tracking it in different page.
+
+---Inside a process-homepage controller:
+
+  	//Create a cookie for username
+        Cookie cookie = new Cookie("LcApp.UserName", userInfoDTO.getUserName());
+        cookie.setMaxAge(60 * 60 * 24); // times in minutes of expiry time
+        response.addCookie(cookie); // add cookie to the response and store in browser
+
+Coookies will store in chrome can see from developer tools -> Application -> Coookies -> cookies name -> (LcApp.UserName) stores username
+
+//
+We need to display the username in textbox if user has already visted us and cookie is storing a username, Capturing cookie.
+
+  	Cookie[] cookies = request.getCookies();
+        for(Cookie temp : cookies) {
+            if("LcApp.UserName".equals(temp.getName())) {
+                String userName = temp.getValue(); //getting username
+                userInfoDTO.setUserName(userName); //setting the username in textbox if name is found in cookie
+            }
+        }
+---------------------------------------------------------------------------------------------
+
+//Here we have a problem, we need to display the username in 2-3 views. So we need to read the cookie for the views with different controllers.
+Don't use HTTPServlet Request and Response if not needed. Use spring for it.
+
+To read the cookie using SPRING.
+//Inside a /sendEmail controller:
+
+(@CookieValue("LcApp.UserName") String userName,)
+        model.addAttribute("userName", userName);
+
+-- getting cookie in view: <h2>Hi ${userName}</h2>
+
+//PROBLEM WITH COOKIE: WHY IT'S NOT RECOMMENEND
+- We're storing a cookie in client computer. And user can block cookies using chrome settings for specific sites.
+- Reading a writing a cookie is challenging task, which is stored in key-value pair in txt file. Cookie size cannot be more than 4kb. Cannot fix complex object.
+
+//WE NEED TO FIND ALTERNATIVE OF COOKIE WHICH IS SESSION
+
+//SESSION DEEPDIVE:
+Session is also a kind of cookie, if you block cookie in browser it won't work.
+
+We have client and server. If i want to purchase keyboard i'll go to amazon and add to cart. I'll go the url: Amazon.us/add-cart and request to server and it'll generate the view and then again it'll store me/client as username = 1 or in number like id=1 and items = mic store inside the server memory/long term storage and creates a cookie which don't contains any information but only id of me like 1. It'll send the cookie to client. Right after that request and response will destroyed and connection will get dropped.
+When i will request to that previous url again: the cookie stored id number will also go the server and server will find the items using cookie(ID) and generate the new view with that info.This is how server will track using id.
+
+Server will store all the information inside server memory. When you stop server all the information will go away.  
+Cookie gets stored inside client side while session is stored inside server.
+
+When we're dealing will cookie we need create it and need to read and write cookie by seeing them personally.
+When we're using/working with SESSION we don't need to create cookie and don't need to read it back and forth.
+
+//Now let's implement SESSION with code:
+Capture the username/information inside the SESSION/Server memory.
+
+// Creating session which will manage cookie behind the scene, if it's new user create a new session and if there's already session then give that session.
+
+	HttpServletRequest request
+
+  	// creating session which will manage cookie behind the scene
+        HttpSession session = request.getSession();
+        session.setAttribute("userName", userInfoDTO.getUserName());
+
+Now, we can capture the userName and display in different pages. Like: <h2>Hi ${userName}</h2>
+
+We are adding the userName in session memory and this object is available to every controller.We can set and get the session or use objectname to just get it.
+By default, the session objects are stored insdie the server in memory.(All the session objects will be removed from the memory once you stop the server)
+
+The Default cookie is JSESSIONID present in browser which uses session to store which has some string value.
+
+---------------
+
+HttpSession session, Model model) {
+
+        String userName = (String) session.getAttribute("userName");
+        String newUserName = "Mr " + userName;
+
+        model.addAttribute("userName", newUserName);
+
+<h2>Hi ${userName}</h2> // in next view page: it'll display MR.Milan
+
+First, userName will look inside the model object to fetch the data, if it's not found, then only it will search inside the session object.
+
+HttpSession will manage cookie and store our information inside server. Be very sure what object you're adding inside the server memory. Otherwise it'll get full.
+
+//How we can handle the session inside a SPRING? Annotation- @SessionAttributes
+
+//How to invalidate a session? 
+You're storing all users information inside a session. Like some guy add items in the cart in amazon and never comes back to the website. Does that site hold the information forever? NO
+So we need to make sure for how long i am going to store the information. Like after 2-3 hours or days and remove it after that time.
+
+So use SESSION timeout.It's stored in web.xml but we can also use annotation.
+
+//for xml based:
+<!-- Session Configuration -->
+<session-config>
+        <session-timeout>120</session-timeout>
+</session-config>
+
+//for code based:
+session.setMaxInactiveInterval(120);
+
+---------------------------------------------------------------------------------------------
+
+Now, what's the alternative for HTTP Session in our Spring framework for session management?
+It'll run HTTP Session behind the scene
+
+@SessionAttributes("userInfo")
+
+The @ModelAttribute("userInfo") name and the @SessionAttributes name should match.
+If both the model and session attribute names match the model object will be periststed(continue to exist) inside the session(server memory).
+
+//
+When i try to enter homepage url it'll give: HTTP Status 500 – Internal Server Error
+Message Request processing failed: java.lang.IllegalStateException: Expected session attribute 'userInfo'
+
+Why am i getting this error, i alreay have session set?
+This is because @ModelAttribute and it's doesnt work with this.
+
+So we Model and add manually.
+
+  @RequestMapping("/")
+    public String showHomePage(Model model) {
+        model.addAttribute("userInfo", new UserInfoDTO());
+        return "home-page";
+    }
+
+<h2>Hi ${userInfo.userName}</h2> //getting username from session.
+
+//how to add multiple model attributes to session attribute?
+@SessionAttributes({"userInfo","registerInfo"})

@@ -1,0 +1,271 @@
+In this video, we will have a hands-on session on Property Editor, Validator, Converter, Formatter, Init Binder. We will go through different scenarios and, we will fix them as well.
+
+You will also learn to configure property place holders in a properties file and you will be able to deal with the type miss-match problem in a Spring MVC application.
+
+So the first goal for today is to learn the init binder and then to configure property editor with our spring application. I will also teach you to create custom property editors in this video. We are not only going to write our editors, but We will be using some built-in property editors as well.
+
+Once we completed learning editors, We will be creating some form validators. As we have completed learning about the JSR 303/349 validators in the earlier videos, we will be learning about the spring's validation API. 
+
+Spring has its validation support and, we can create our custom validator using the spring's validator interface. I will be giving you a few examples and assignments on this concept.
+
+Apart from this, We will cover the difference between formatter and editor.  I will compare the formatter, editor, and converter together.
+
+Video Map:
+⏱️TIMESTAMPS⏱️
+Introduction 00:00
+init binder :  00:05:12
+String trimmer editor:  00:16:42
+Property Editor Theory:  00:31:26
+webdata binder:  00:38:36
+String trimmer editor debugging:  00:45:30
+Custom Date Editor:  00:51:40
+custom number editor: 01:02:08 
+create custom editor: 01:09:50
+create custom currency editor: 01:22:18
+Init binder formatter registration: 01:36:12
+formatter vs property editor: 01:39:46
+introducing Converter: 01:51:41
+Introducing Validator: 02:03:31
+Custom Email Validator: 02:28:13
+property Placeholders : 02:47:34
+Type Miss Match Problem 03:00:50
+
+
+//SPRING'S OWN VALIDATON API:
+
+--
+//init binder: When will this method execute while running server?
+Ans: This initbinder method will run first when server is run at first.
+The flow will come to initBinder first and then handler methods of controller where databinding happens.
+
+Passing object: WebDataBinder
+
+We can control databinding in this initbinder method, if i dont want certain data(ex: name) to be binded from the textbox then use this in method: binder.setDisallowedFields("name");
+The data binding won't happen for that field.
+
+@InitBinder
+    public void initBinder(WebDataBinder binder){
+        System.out.println("Inside initBinder method-controller");
+	binder.setDisallowedFields("name");
+    }
+
+
+// Let's see another example:
+The user shouldn't enter null value in the name textbox.
+
+@NotEmpty(message = "Cannot be empty")
+    private String name;
+
+
+--This @NotEmpty will be working if user enter blankspace
+Name value entered: |       |
+
+So, let's control the data binding/ that type of scenario; write a property editor initBinder method.
+
+// Property editor:
+
+Property editor For name provided by spring:
+
+//Builtin class that can trim the string if it contains white-spaces.
+StringTrimmerEditor editor = new StringTrimmerEditor(true);
+
+//register the class: type, fieldname, trimeditor obj name;
+binder.registerCustomEditor(String.class,"name",editor);
+
+-- Now,user cannot enter whitespace in name field, StringTrimmerEditor is convering whitespaces to null: Name value entered: |null|
+
+-----
+Property editor Theory:
+
+When enterting age=10 in text box. 10 is entered as String object but in our dto class age is stored in Integer format. So, we need to convert String object into Integer object first before storing it in dto class. So, Property editor converts string to integer automatically. Auto conversion is done internally by spring. It's builtin conversion
+
+So, there will be scenario when will need to convert with our own requirement like when enterting name in text box.
+Name = Milan Tamang; // String object
+
+We need to store that string object in class.
+Class StudentName{
+String firstName; //Milan
+String lastName; //Tamang
+}
+
+Here we need to capture that String object and convert it into StudentName object. So property editors will do the conversion. No default property will help us to convert String type to our own custom type. So need to write custom property editors and convert behind the scene.
+Spring uses property editors to convert string to object type and object type to string type. This is called conversion.
+
+-- WebDataBinder is the binder class that is responsible for setting property values on to a target object, setting from fields into beans
+
+// How the WebDataBinder is instantiated or can get access?
+An init bindermethod() initialises WebDataBinder and can get acess. After getting acces we can register that binder.
+
+ @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        System.out.println("Inside initBinder method-controller");
+
+        StringTrimmerEditor editor = new StringTrimmerEditor(true);
+        binder.registerCustomEditor(String.class,"name",editor);
+        //binder.setDisallowedFields("name");
+    }
+
+
+-- With the binder class we can register custom property editors, validators and required properties which are mandatory, allowed/disallowed properties and the rest WebDataBinder will takecare.
+
+//
+WebDataBinder is a component in Spring that helps bind HTTP request parameters to Java objects.
+It is used to automatically convert request parameters (which are Strings) into proper Java types when handling form submissions.
+
+How Property Editor and WebDataBinder Work Together?
+- When a user submits a form in a Spring MVC application, the input fields are all strings.
+- Property Editors (registered in WebDataBinder) convert these strings into the correct data type (e.g., Date, Integer).
+- This makes handling form submissions easier and automatic.
+
+-------------------------------------------------------------------
+
+//Built in Property Editors Deep dive:
+Let's debug StringTrimmerEditor: How it's working.
+During the program, Whitespace will be converted into null using StringTrimmer property editor.
+
+----
+    private Date date;
+
+//CustomDate editor
+ @InitBinder
+    public void initBinder(WebDataBinder binder) {
+
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy"); //day-month-year in this format
+        CustomDateEditor dateEditor = new CustomDateEditor(format, true);
+
+        binder.registerCustomEditor(Date.class,"date",dateEditor);
+
+    }
+
+
+//Custom Number format editor
+-- private BigDecimal amount; // user can enter amount like this now:20,000.00
+
+NumberFormat numberFormat = new DecimalFormat("##,###.00");
+CustomNumberEditor editor = new CustomNumberEditor(BigDecimal.class,numberFormat,true); //requiredType,field
+biner.registerCustomEditor(BigDecimal.class,"amount",editor);
+
+------
+Now,Let's write some Custom Property Editor: Introducing PropertyEditorSupport
+
+Needs to extends PropertyEditorSupport for creating custom.
+
+---Creating propertyeditor which makes name toUppercase before biding that name
+
+public class NamePropertyEditor extends PropertyEditorSupport {
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+        String myConvertedString = text.toUpperCase();
+        setValue(myConvertedString);
+
+    }
+}
+
+--
+// for custom Name editor property
+NamePropertyEditor nameEditor = new NamePropertyEditor();
+binder.registerCustomEditor(String.class, "name",nameEditor);
+
+//Question: What happens when you don't pass the field name("name"/"amount") in registerCustomEditor method?
+Ans:
+We have another method that we will override i.e.public void registerCustomEditor(Class<?> requiredType, PropertyEditor propertyEditor) 
+which is taking two parameters i.e. type and your editor obj. Not only name, it is also converting other fields values like userName and other string in to uppercase. So if we don't want to change other field value to uppercase then we must define the another method which takes 3 parameter i.e. binder.registerCustomEditor(type, "yourVariableName", yourEditorObj);
+
+----
+CREATE CUSTOM CURRENCY EDITOR: User can enter(USD,usd,INR,inr) -> When user enters in small letter it won't work with help of property editor it'll work.
+// we can create CURRENCY OBJECT BY: 
+Currecncy currency = Currency.getInstance("USD");
+sout(curreny.getSymbol());
+ 
+private Currency currency;
+
+---
+
+public class MyCustomCurrencyEditor extends PropertyEditorSupport{
+@Override
+public void setAsText(String text) throws IllegalArgumentException{
+
+Currency currency = Currency.getInstance(text.toUpperCase());
+setValue(currency);
+ }
+}
+
+--in result-viewpage : {billDto.currency.displayName}
+
+// register a custom editor for currency
+
+MyCustomCurrencyEditor currencyEditor = new MyCustomCurrencyEditor();
+binder.registerCustomEditor(String.class, "currency", currencyEditor);
+
+----------------------------------------------------------------------
+
+//Another way to add/register our custom Formatter class with initBinder() method.
+
+binder.addCustomFormatter(new CreditCardFormatter());
+
+-----------------------------------------------------------------------
+// FORMATTER VS PROPERTY EDITOR:
+
+Now, let's see we can use property editor for credit card instead of formatter. We can copy the parse() method code of formatter and paste it in setAsText() method in property editor. Code can be same in both. And add the property editor for creditcard in initBinder() method.
+
+Property editor will work same as formatter.They are basically same.
+
+So, which one to use? 
+-
+
+What's the difference:
+When page loads and we want some data already loaded inside the creditcard textbox then:
+- We can use print() method to display data in the formatter.
+- We can use getAsText() method to display data in the propertyeditor.
+
+//for custom credit card editor property
+CreditCardEditor creditCardEditor = new CreditCardEditor();
+binder.registerCustomEditor(CreditCard.class, "creditCard",creditCardEditor);
+
+//for printing default creditcard in view
+@Override
+    public String getAsText() {
+        //Converting into CreditCard type object
+        CreditCard creditCard = (CreditCard) getValue();
+        return "Sample: " + creditCard;
+    }
+
+-------------
+//INTRODUCING CONVERTER: THIS IS LATEST/ ALTERNATIVE TO PROPERTY EDITOR
+-WHAT IS CONVERTER?
+
+-CREATE A CONVERTER FOR A CREDITCARD.
+
+//
+import org.springframework.core.convert.converter.Converter;
+
+//I want to convert string object to a Credit card object
+public class CreditCardConverter implements Converter<String, CreditCard> {
+    
+    @Override
+    public CreditCard convert(String source) {
+       //copy the logic from CreditCard Property Editor/Formatetr
+    }
+}
+
+// I cannot register converter in initBinder() method.
+// To register it add converter in  addFormatters() in config file.
+//
+public void addFormatters(FormatterRegistry registry) { 
+registry.addConverter(new CreditCardConverter());
+
+--When using converter, we cannot load the default value in view page using a method like getAsText() and print().
+--So, inorder to show the value we need to create another new converter class just to show.
+
+Example: Converting CreditCard Type to String Type and showing in page. Need to register this converter also.
+
+public class CreditToString implements Converter<CreditCard,String> {
+
+    @Override
+    public String convert(CreditCard creditCard) {
+        return "Sample: " +creditCard.toString();
+    }
+}
+
+//We can use converter,formatter,Property Editor.
+

@@ -1,0 +1,49 @@
+// FRONT CONTROLLER - THEORY
+
+Suppose there are 2 Houses. In one house, Father, mother and 2 children are there. In second house, neighbour house. In first house all the request is handled by father as he is the head of the house. 
+Suppose the neighbour wants sugar from the first house and request it then the dad handles that request. But,dad doesn't know where is sugar so he ask for mom and mom gives the sugar and the dad pass the sugar to neighbour.
+If neighbour request football then dad request it to his son and pass it back to neighbour.
+
+The dad knows who can handle the incoming requests.
+
+Now, Dad is called Front Controller. Mom and 2 children are controller. Where as the neighbour is client/ web broswer.
+
+Suppose we have a website called home.com and when home.com/sugar url is requested then mom controller handles that request.
+When home.com/football url is requested then son controller handles that request.
+When home.com/makeupkit url is requested then daughter controller handles that request.
+
+The DAD Front controller is going to handle all the request coming to our website
+/home.com/*. Every request coming to website is handled by the front controller because he is mapped with the url /home.com/*. * means accept any url starting with home.com
+
+And he is going to dispatch the request to who ever controller is handling it.
+FRONT CONTROLLER IS JUST ROUTING/Dispatching the request to one of the controller who can actually do that work.
+Once the controller gives the data back to front controller, he actually gives back to client.
+
+FRONT CONTROLLER JUST STANDS INFRONT AND ACCEPTS ALL THE REQUEST THEN MAKES THE RIGHT DECISION WHO WILL HANDLE THAT REQUEST.
+
+SPRING AUTOMATICALLY HAS FIRST CONTROLLER BUILTIN. It's name is DispatcherServlet.
+
+//home practical
+
+To create frontcontroller add Dispatcher servlet class in web.xml file
+
+    <absolute-ordering/>
+
+  <servlet>
+        <servlet-name>dad-frontController</servlet-name>
+     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+ <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/dad-frontController-servlet.xml</param-value>
+        </init-param>
+    </servlet>
+
+    <!-- 2. Add servlet mapping -->
+    <servlet-mapping>
+        <servlet-name>dad-frontController</servlet-name>
+        <url-pattern>/home.com/*</url-pattern> // mapping
+    </servlet-mapping>
+
+// Dont need to write all the code, can generate via IDE.
+
+

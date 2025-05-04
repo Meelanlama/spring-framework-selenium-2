@@ -1,0 +1,38 @@
+SPRING MVC - XML WAY, LET'S REVISIT
+
+web.xml
+
+<servlet>
+        <servlet-name>dad-frontController</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/springConfig.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+ <!-- 2. Add servlet mapping -->
+    <servlet-mapping>
+        <servlet-name>dad-frontController</servlet-name>
+        <url-pattern>/home.com/*</url-pattern>
+    </servlet-mapping>
+
+
+//
+
+We give our dispatcher servlet name in xml file and map that servlet with the url pattern. when that url /home.com/* is entered all the request is handled by that servlet.
+The <init-param> will give the location of our context file..and it'll load that file.
+load on startup 1 is it's already loaded.
+
+When the dispatcher servlet is loaded it'll search for the config file with it's same name if not found then have given config file in init-param so, it will load that config file..
+
+-- In WEB.XML file We are defining DispatcherServlet. Tomcat will read the web.xml and initialise the dispatcherservlet, and that servlet needs configuration file/ web application context.
+
+//IN JAVA CLASS:
+
+We need to write two equivalent java classes for the web.xml and Spring config file.
+
+Create class to define DispatcherServlet that should be picked by Tomcat automatically,
+Create another class for config file where we define beans,do component scanning and viewresolver. So dispatcherservlet class can read this config class.
+

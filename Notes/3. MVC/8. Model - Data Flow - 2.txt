@@ -1,0 +1,33 @@
+In our application, one last thing is pending..
+
+Whenever, we are ordering the food from welcome page. We need to capture that data from page and show it in the processOrder page.
+
+Capture the food data in controller and we need to keep inside the model and send it via model to next page/view and show via ${} in view.
+
+// What happens when we click on Order(Submit) button?
+
+1. It will redirect us to new url home.com/processOrder,
+2. And sending that request/data to DISPATCHER SERVLET(/home.com/*) from the welcome page, front controller receives the request with data.
+3. DISPATCHERSERVLET finds the /processOrder RequestMapping and invoke that method and gets executed so this method needs to capture that data passed by DISPATCHERSERVLET from the previous method.
+4. Now, we handle and send the data from that method to next page Using DispatcherServlet. It passes data to view resolver finds that particular view and shows that data to the client.
+
+ // This controller job is to display the food ordered from the welcome page..
+
+    @RequestMapping("/processOrder")
+    public String processOrder(HttpServletRequest request,Model model) {
+
+	//First By Using (HTTPServletRequest request)
+        //handling the data received from the user
+        String food = request.getParameter("foodType"); //"foodType" is input name..
+
+        //adding the captured value to the model
+        model.addAttribute("userFood", food);
+
+        //setting the user data with the model object and sending to view
+        return "process-order";
+    }
+
+
+-- Getting from view
+
+<p>Your order <span style="color: red;">${userFood}</span> is getting ready..</p>

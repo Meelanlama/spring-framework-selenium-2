@@ -1,0 +1,19 @@
+How can we change dispatcher servlet context configuration file name?
+
+The frontController servlet name and the xml file in web-inf directory should be same.
+Like: dad-frontController, dad-frontController-servlet.xml
+
+if deploying in server the servlet xml file is not found or name is different then it won't execute.
+
+// How to let DispatcherServlet know that we have changed the config file name??
+
+Don't use default search, rather use this and search for this particular file:
+
+<init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/dad-frontController-servlet.xml</param-value>
+</init-param>
+
+param-value: it'll search for that file if name is different then also it'll run.Give the xml location.
+
+Use the <init-param> tag if xml name is different.

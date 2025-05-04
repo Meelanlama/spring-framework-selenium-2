@@ -1,0 +1,18 @@
+Qsn.// When will dispatcher servlet object be initialized/created ?
+Once we deploy the app inside the tomcat server.
+
+ <load-on-startup>1</load-on-startup>
+
+This above code runs the server on startup and the object is initialized.
+
+When DispatcherServlet is initialized then you should have a file inside web-inf directory and the naming of that file should be:
+
+"dispatcherservlet-name" followed by "-servlet.xml"
+
+Ex: dad-frontController-servlet.xml
+
+// create that same name xml servelt file in web-inf folder because it searches the samename as frontcontroller
+
+// IMP
+
+We have created that same name xml file because whenever dispatcher servlet is initialized because it will default look in web-inf folder with same name as dispatcherservlet/frontcontroller.

@@ -1,0 +1,82 @@
+Let's delete the web.xml and see what's happens?
+Will give error previously, but now it'll run in servlet 3.0 with servlet container.
+
+Now, let's go to maven repo and copy spring web mvc dependency to our pom.xml
+
+1. Create a class ApplicationInitializer that implements WebApplicationInitializer interface and override onStartup method.Now, tomcat will automatically detect this class.
+
+2. Setting Dispatcher Servlet in our class
+
+Use spring and Servlet API same version in pom.xml otherwise error.
+Example: spring- <version>6.0.2</version> and servlet api- <version>6.1.0</version>
+
+public void onStartup(ServletContext servletContext) throws ServletException {
+
+    //creating Web AApplication context and passing the xml config file location
+    XmlWebApplicationContext webApplicationContext = new XmlWebApplicationContext();
+    webApplicationContext.setConfigLocation("classpath:springConfig.xml");
+
+     //create a dispatcher servlet object
+   DispatcherServlet dispatcherServlet = new DispatcherServlet(webApplicationContext);
+
+   //register a dispatcher servlet with a servletContext object ServletRegistration.Dynamic myCustomDispatcherServlet =    servletContext.addServlet("dadFrontController", dispatcherServlet);
+
+	//load on startup
+       myCustomDispatcherServlet.setLoadOnStartup(1);
+	// mapping url
+       myCustomDispatcherServlet.addMapping("/mywebsite.com/*")
+    }
+
+For the Dispatcher Servlet(Servlet-mapping):
+i. Set up URL MAPPING
+ii. Set up load-on-startup
+
+3. Configure Load-on-startup and url mapping for the dispatcher servlet.
+
+Qsn. What is the return type for servletContext.addServlet(" ",); ?
+Ans: ServletRegistration.Dynamic, They both are interface.
+
+4. Let's create a controller and do component scanning to scan those controller
+
+5. Let's deploy our code and test it.
+
+6. Now,Delete the spring config xml file.
+
+7. Make a replacement java class for config.
+@Configuration,@ComponentScan(basePackagaes="name")
+
+8. Register the app config class with DispatcherServlet
+
+//creating Web Application context
+AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
+//  Register configuration class
+    webApplicationContext.register(LoveCalculatorAppConfig.class);
+// Refresh the context (crucial!)
+    webApplicationContext.refresh();
+
+9. Let's return a view, front end page:
+
+10. Now, lets develop a view resolver.
+
+@EnableWebMvc
+@Configuration
+@ComponentScan(basePackages = "com.milan.controllers")
+public class LoveCalculatorAppConfig {
+
+    //setting up my view resolver
+    // doing same as xml, creating InternalResourceViewResolver bean at first and
+    // setting prefix and suffix
+    //create object of viewResolver and put it inside container by using bean
+    //our dispatcher servlet will take this when viewResolver is needed.
+
+ @Bean
+ public InternalResourceViewResolver viewResolver(){
+   InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+
+        viewResolver.setPrefix("/WEB-INF/view/");
+        viewResolver.setSuffix(".jsp");
+
+        return viewResolver;
+    }
+}
+

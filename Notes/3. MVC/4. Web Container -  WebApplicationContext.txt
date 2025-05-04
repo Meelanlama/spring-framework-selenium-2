@@ -1,0 +1,35 @@
+// When is our DispatcherServlet is initialized?
+
+We have configured our dispatcher servlet in web.xml and name is dad-frontController.
+And that particular class object will be created during server startup because of 
+<load-on-startup>1</load-on-startup>.
+
+
+// What happens when the dispatcher servlet gets initialized?
+
+It is actually looking for the file same as the name of front controller. If my front controller name is dad-frontController, then its looking for the dad-frontController-servlet.xml file in web-inf directory.
+
+And it is trying to create container out of this file.
+The container its trying to create after finding that file is: WebApplicationContext
+
+You don't have to create and destroy that container manually. It automatically starts and close.
+
+//
+
+<context:component-scan base-package="controllers"/>
+
+It'll scan component and if any class from that package has @Controller
+annotation then that class object will be created inside that WebApplicationContext container.
+
+home.com/sugar - if we enter this url we'll go the sugar page.
+This is happening because all the controllers are registered with WebApplicationContext Container.
+
+<servlet-name>dad-frontController</servlet-name>- handles the request
+
+<url-pattern>/home.com/*</url-pattern>
+
+In our webapplication container there's two controller registered. /sugar and /football. Dispatcher will scan all the handler method inside the controller class and check if the url /sugar is matching with the @RequestMapping and if found it's sending directly to the browser using @ResponseBody.
+
+
+// WebApplicationContext is a container when webapplication object will be created and stored inside it.
+

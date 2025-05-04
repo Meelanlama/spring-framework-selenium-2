@@ -1,0 +1,38 @@
+Modern,Web,Controller helps for building web application.
+
+MVC IN A RESTAURANT:
+
+Waiter - who waits at our table and collects the order (Controller)
+Cook - who cooks the dish (Basically MODEL)
+Presenter(more in fancy restaurant) - makes food fancy in more presentable way (VIEW)
+
+You're in a restaurant table and you order somthing, it'll be collected by waiter and he passes order to the cook,there may be different cook who specializes in different dishes, the cook doesn't know where the order came from but he makes the food ready and pass back to the waiter and the waiter deliver it to the presenter to make the food fancy and it's delivered to the customer.
+
+There's 3 role and its because there's shoule be no mixing of responsibility.
+
+// IN A GENERIC SCENARIO:
+
+USER IS MAKING REQUEST TO THE WEB APPLICATION/URL, THE FIRST THAT TAKES THE REQUEST IS CONTROLLER,It is the wiring behind all this,controller knows where to pass the request,what to do with the request, when to send it back, it analyses the request and depending upon the request it passes on the request to BUSINESS SERVICE.Now, the request is to pull up all the list of users in system, NOW the controller doesn't know how to pull the users,it only knows there's another object who specializes in pulling the users from system and THE BUSINNES SERVICE object has probably the method saying getAllUser() and now controller calls the method of that object saying businessService.getAllUser() and the object is only concerned with getting all users and once the list of all users is available it passes on the list of user back to controller.
+Now, controller takes the list of user and  passes it to the VIEW, it specializes in rendering the list of users in proper format that the client/user can see and once VIEW formats all the data and makes it ready. IT's passed to the user.
+
+MODEL IS THE DATA THAT FLOWS THROUGH ALL ALONG LIKE getAllUser(), user of particular department and department id will be the parameter to the business service object and it executes and returns the user to controller and passed to the view and back to user.
+
+NOW, THIS LIST OF USER IS MODEL.
+
+// ADVANTAGES OF USING MVC:
+
+1. SEPERATION OF CONCERN: LIKE WAITER HAVE TO KNOW THE ORDER, WHO ORDERED IT AND DOESN'T NEED TO KNOW HOW TO COOK, THE COOK DOESN'T NEED TO KNOW WHO ORDERED IT AND PRESENTER DOESN'T NEED TO KNOW THE ORDER AND HOW TO COOK.
+EACH ROLE IS SPECIFIC TO WHAT THEY ARE DOING.
+
+2. YOU CAN EASILY MAKE CHANGES: HOTEL RECRUITS ONE COOK AND THERE'S NOW 4 COOK, NOW WAITER ONLY HAS TO KNOW THERE'S NEW COOK AND WAITER PASS ORDER TO THE NEW COOK.AND, OLD COOKS DONT HAVE TO WORRY ABOUT IT, THEY CAN DO THEIR OWN WORK.
+WHEN YOU HAVE NEW PRESENTER, THE WAITER NEEDS TO KNOW WHAT KIND OF FOOD NEED TO BE SENT TO THE PRESENTER.
+
+THE CONTROLELR(WAITER) WIRES ALL THE DIFFERENT MODULES.
+
+// IMPLEMENTATION IN WEB APPLICATION:
+
+SERVLET IS GONNA BE CONTROLLER(THAT GONNA GET THE REQUEST FROM USER FIRST) AND FROM SERVLET WE PASS THE REQUEST TO BEAN WHICH IMPLEMENTS BUSINESS SERVICE METHOD AND RETURNS RESPONSE TO THE SERVLET AND SERVLET GONNA PASS THE RESPONSE TO JSP WHICH WILL BE VIEW,WHICH FORMATS THE DATA THAT CAN BE VIEWED BY USER AND PASSED TO THE USER.
+
+// API EXAMPLE WAITER
+The waiter is API who communicates between the two, just like an API. When you enter the restaurant, you interact with the waiter and place your order. The waiter then walks over to the kitchen and tells them what they need to prepare. Once ready, the waiter will bring your order from the kitchen back to you.
+

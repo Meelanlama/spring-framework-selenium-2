@@ -1,0 +1,32 @@
+@Controller
+public class SisController {
+
+    @ResponseBody
+    @RequestMapping("/makeup")
+
+    public String giveMakeup(){
+        return "Take this Makeup";
+    }
+
+    @ResponseBody
+    @RequestMapping("/clean")
+    public String cleaning(){
+        return "Cleaning house...";
+    }
+}
+
+We can create as many methods as we want, inside the controller.There's no limitation.
+They can have multiple handler methods.
+
+
+//We can also use @RequestMapping in the class level.
+
+@Controller
+@RequestMapping("/sis")
+public class SisController {}
+
+
+When mapping is in class then the mapping of class should be in url inorder to execute http://localhost:8080/MyMvc_war_exploded/home.com/sis/makeup
+
+
+

@@ -1,0 +1,142 @@
+BEST PRACTICES: 
+
+# NO 1: ADD properties file to keep track and load that file:
+
+email.properties:
+
+mail.host=smtp.gmail.com
+mail.port=587
+mail.username=lmilan667@gmail.com
+mail.password=pass123
+
+ADD THIS TO SCAN FOR PROPERTIES FILE:
+@PropertySource("classpath:email.properties")
+
+@Autowired
+private Environment environment;
+
+//Use this environment to load the properties which takes key and gives value.
+
+//Setting properties
+@Bean
+    public JavaMailSender getJavaMailSender() {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(environment.getProperty("mail.host"));
+	//type casting string to integer type
+        mailSender.setPort(Integer.parseInt(environment.getRequiredProperty("mail.port")));
+
+-------------------------------------------------------------------------
+
+#NO 2: CREATE UTILITY/HELPER METHODS WHICH COULD BE REUSABLE
+
+If i have 3 or 4 more properties like port number which needs to convert string to integer. Then i need to parse it manually like above.
+So, create a helper method which converts string to integer.
+
+  //HELPER METHOD TO CONVERT STRING TO INTEGER
+    int getIntProperty(String key) {
+        String property = environment.getProperty(key);
+        return Integer.parseInt(property);
+    }
+
+Now, we can use: mailSender.setPort(getIntProperty("mail.port"));
+
+-------------------------------------------------------------------------
+
+#NO 3: Writing a Readable code. Don't dump all your code inside a single method. Create small small method so its readable.
+
+// for getting properties 
+ private Properties getMailProperties() {
+        Properties mailProperties = new Properties();
+        mailProperties.put("mail.smtp.starttls.enable", "true");
+        mailProperties.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+        return mailProperties;
+    }
+
+//fetching properties
+mailSender.setJavaMailProperties(getMailProperties());
+
+-------------------------------------------------------------------------
+
+#NO 4: USE LOGGER: NO MORE SYSTEM.OUT.PRINTLN()
+
+When you have to log something, don't use sout().Instead use logger to print something.
+
+//creating logger instance and getting the name of class
+Logger logger = Logger.getLogger(LoveCalculatorAppConfig.class.getName());
+
+//LOG OUR VALUE
+logger.info("fetching the host value" + environment.getProperty("mail.host"));
+
+
+//Question: HOW TO LOAD MULTIPLE PROPERTIES SOURCES?
+
+//WILL TAKE ARRAY
+@PropertySources(
+{@PropertySource("classpath:email.properties"),
+@PropertySource("classpath:phone.properties")}
+)
+
+-------------------------------------------------------------------------
+
+#NO 5: HANDLE EXCEPTIONS(try and catch block of risky code)
+
+When our sendEmail() method in the service class fails and We are calling that method in controller class, it'll throw exception and App will crash as We haven't handled that.
+So, use try catch block in methods to handle the exceptions whenever you're having db,service or any backend call.
+
+   try {
+         lcAppEmailService.sendEmail(userInfoDTO.getUserName(), emailDTO.getUserEmail(), "Friends");
+  } catch (Exception e) {
+        logger.info(e.getMessage()); }
+
+-------------------------------------------------------------------------
+
+#NO 6: METHOD DESGIN: 
+
+//good practice(inside interface)
+public void sendEmail(String userName, String userEmail, String result);
+
+Description: The method accepts only the required parameters (username, email, and result), keeping the method focused and avoiding the exposure of unnecessary details.
+
+//here is only fetching username and email first at the time of Method call. he's filtering and sending the data
+lcAppEmailService.sendEmail(userInfoDTO.getUserName(), emailDTO.getUserEmail(), "Friends");
+
+//bad practice(problem is we should not accept the entire dto), here we will filter the data in the method itself and that dto can have so many properties.
+public void sendEmail(UserInfoDTO userInfoDTO,EmailDTO emailDTO, String result);
+
+Description: The method accepts entire DTOs, which may contain more data than needed. Filtering inside the method can lead to unnecessary complexity and could expose sensitive or irrelevant information.
+
+##
+//Good Practice Example:
+
+public void sendEmail(String userName, String userEmail, String result) {
+    // Only uses the necessary data for sending the email
+    System.out.println("Sending email to: " + userEmail + " with result: " + result);
+}
+
+// Method call
+lcAppEmailService.sendEmail(userInfoDTO.getUserName(), emailDTO.getUserEmail(), "Friends")
+
+
+##
+//BAD Practice Example:
+
+public void sendEmail(UserInfoDTO userInfoDTO, EmailDTO emailDTO, String result) {
+    // Filtering data within the method which is unnecessary
+    String userName = userInfoDTO.getUserName();
+    String userEmail = emailDTO.getUserEmail();
+    System.out.println("Sending email to: " + userEmail + " with result: " + result);
+}
+
+// Method call
+lcAppEmailService.sendEmail(userInfoDTO, emailDTO, "Friends");
+
+Key Difference: In the bad practice, the method is accepting entire DTOs (UserInfoDTO and EmailDTO) when only specific properties (like username and email) are needed.
+
+
+
+
+
+
+
+
+

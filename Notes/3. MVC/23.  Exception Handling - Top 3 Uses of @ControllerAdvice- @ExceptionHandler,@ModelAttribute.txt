@@ -1,0 +1,264 @@
+In this video, We will learn about one of the most important spring interview questions / Spring MVC annotations called @ControllerAdvice.The @ControllerAdvice can be used with @ExceptionHandler, @InitBinder @ModelAttribute. The @ControllerAdvice annotation is widely used with @ExceptionHandler to handle exception in spring MVC/ Spring Boot/ Spring REST.
+
+The @ControllerAdvice annotation is a specialization of spring’s @Component annotation. These tutorials will help you learn this Important annotation step by step.
+
+# Pinned Comment:
+Hi Abhilash , One thing i would like to point out -  When we use @ModelAttribute("ModelObject") at method level , it typically gets called before every request , whenever a handler method from the controller is called. That is if there are 3 handler methods in a controller , the method with @ModelAttribute  will get called every time 1st ,2nd or 3rd method is called. And the values will be pushed to Model through @ModelAttribute("ModelObject").
+BUT there is an exception to this, when there is @SessionAttributes annotation also present at class level along with @ModelAttribute at method level, the values to Model are pushed by @SessionAttributes("ModelObject") and not by @ModelAttribute. So @ModelAttribute annotated method will be called only once per session and not every time before every request. And values will be populated through @SessionAttributes.
+
+Summary:
+- Without @SessionAttributes: @ModelAttribute is invoked before every handler method and adds data to the model on each request.
+- With @SessionAttributes: The @ModelAttribute method is invoked only once per session, and the model is stored in the session for subsequent requests
+
+//Example Without @SessionAttributes:
+
+@Controller
+public class MyController {
+
+    // This method adds the "user" object to the model before each request
+    @ModelAttribute("user")
+    public User addUserToModel() {
+        System.out.println("Adding user to model");
+        return new User("John", "Doe");
+    }
+
+    // This handler method can access the "user" object from the model
+    @GetMapping("/home")
+    public String home(Model model) {
+        User user = (User) model.getAttribute("user");
+        System.out.println("User in home: " + user);
+        return "home";
+    }
+
+    // Another handler method that also accesses the "user" object from the model
+    @GetMapping("/about")
+    public String about(Model model) {
+        User user = (User) model.getAttribute("user");
+        System.out.println("User in about: " + user);
+        return "about";
+    }
+}
+
+When using: @SessionAttributes("user")
+Now,    
+@ModelAttribute("user")
+addUserToModel() is called only one time. user object is managed by the session and automatically injected into the model without needing you to manually add it each time.
+
+---------------------------------------------------------------------------------------------
+
+//SECTION-I: @ModelAttribute at the method level
+
+//IN model_attribute_method_level package:
+
+CODE EXAMPLE:
+
+@Controller
+public class MyWebsiteController {
+
+    @ModelAttribute("websiteInfo")
+    public WebsiteInfoDTO getWebsiteInfo() {
+
+        System.out.println("***************");
+        System.out.println("@ModelAttribute: Inside getWebsiteInfo");
+
+        WebsiteInfoDTO websiteInfoDTO = new WebsiteInfoDTO();
+
+        websiteInfoDTO.setWebsiteName("Udemy.com");
+        websiteInfoDTO.setWebsiteCategory("Education");
+
+        System.out.println("***************");
+
+        return websiteInfoDTO;
+    }
+
+
+ @ModelAttribute("header123")
+    public String getWebsiteHeader() {
+        System.out.println("Inside @ModelAttribute: getWebsiteHeader");
+        return "Udemy";
+    }
+
+   //@ModelAttribute header123 will return udemy.
+
+    // will get the object back from the model attribute method if it's available and inserted to dto
+    //The object of @ModelAttribute method will inject to dto reference
+    @RequestMapping("/showInfo")
+    public String showWebsiteInfo(@ModelAttribute("websiteInfo") WebsiteInfoDTO websiteInfoDTO) {
+        System.out.println("@RequestMapping: showWebsiteInfo");
+
+        System.out.println(websiteInfoDTO.getWebsiteName());
+        System.out.println(websiteInfoDTO.getWebsiteCategory());
+
+        return "index-website";
+    }
+}
+
+//This @ModelAttribute("websiteInfo") in method level will store the object of that particular method, so we can inject it when needed in another method.
+At first when "/showInfo" handler method is called and there is websiteInfo model attribute, it'll look inside the model before object creation if it's available and that method is already initialized at first so it'll be there. So fetching and injecting that model.
+ 
+If that modelattribute won't find that model, then only object will be created for it and assign to that modelattribute.
+
+<h2>${header123}</h2 // this will return Udemy in view page.
+
+//How the @ModelAttribute works at method level?
+Before every request, it gets executed.
+
+---------------------------------------------------------------------------------------------
+
+// SECTION - II:
+
+@Controller
+public class TestController {
+
+    @RequestMapping("/testing")
+    public String test(@ModelAttribute("websiteInfo") WebsiteInfoDTO webDto) {
+        System.out.println(webDto.getWebsiteName()); //null
+        System.out.println(webDto.getWebsiteCategory()); //null 
+        return "index-website";
+    }
+}
+
+If we want that @ModelAttribute from another class controller then that attribute will inject to webDto. But now we cannot fetch that model from another class.
+Because of the request/http stateless protocol, once the request is finished than it'll be destoryed. So there will be new model object.
+
+// A global variable is a variable declared in the global scope of a program, making it accessible and modifiable from any part of the code (functions, classes, etc.), unless restricted by scope rules.
+
+//So, i want the  @ModelAttribute("websiteInfo") data to be global/available to any controller/everywhere. And I want the same object to inject.
+So use @ControllerAdvice, and the the "websiteInfo" model will be global. And we can fetch that object from model and can be injected.
+If we use @ControllerAdvice in the controller class then the method of that class which have @ModelAttribute will be visible everywhere.
+
+//@ModelAttribute("websiteInfo") of /testing handler method will look for the object, if it's available then it'll inject that object. Otherwise, it'll create itself if not found.
+
+public String test(@ModelAttribute("websiteInfo") WebsiteInfoDTO webDto) // here we'll inject the object(websiteInfoDTO)of that model found into webDto.
+
+---------------------------------------------------------------------------------------------
+
+Your understanding is partially correct, but there's a key issue in your implementation.
+
+Issue:
+- @ModelAttribute("websiteInfo") in TestController /test is not automatically getting data from MyWebsiteController /getWebsiteInfo
+- @ModelAttribute methods (like getWebsiteInfo) are typically invoked when handling requests within the same controller.
+- Spring does not automatically share model attributes across different controllers unless you explicitly use @SessionAttributes or a global @ControllerAdvice.
+
+Solution:
+If you want websiteInfo to be available across multiple controllers, you should move getWebsiteInfo to a common place, such as:
+
+1. Using @ControllerAdvice (Best practice):
+
+@ControllerAdvice
+public class GlobalControllerAdvice {
+    
+    @ModelAttribute("websiteInfo")
+    public WebsiteInfoDTO getWebsiteInfo() {
+        WebsiteInfoDTO websiteInfoDTO = new WebsiteInfoDTO();
+        websiteInfoDTO.setWebsiteName("Udemy.com");
+        websiteInfoDTO.setWebsiteCategory("Education");
+        return websiteInfoDTO;
+    }
+}
+Now, websiteInfo will be available in all controllers.
+
+2. Using @SessionAttributes in MyWebsiteController
+If you need to persist the object across multiple requests, you can use @SessionAttributes:
+
+@Controller
+@SessionAttributes("websiteInfo")
+public class MyWebsiteController {
+
+    @ModelAttribute("websiteInfo")
+    public WebsiteInfoDTO getWebsiteInfo() {
+        WebsiteInfoDTO websiteInfoDTO = new WebsiteInfoDTO();
+        websiteInfoDTO.setWebsiteName("Udemy.com");
+        websiteInfoDTO.setWebsiteCategory("Education");
+        return websiteInfoDTO;
+    }
+}
+
+Now, websiteInfo will be stored in the session and available in other controllers.
+
+Key Takeaway:
+- Move getWebsiteInfo to @ControllerAdvice if you want it available globally.
+- Use @SessionAttributes if you need to persist it across multiple requests.
+- Spring does not automatically share @ModelAttribute across different controllers unless configured properly.
+
+---------------------------------------------------------------------------------------------
+
+How Does @ModelAttribute Inject an Object?
+When you use @ModelAttribute in a Spring MVC controller, Spring follows a specific process to create, bind, and inject the object into the handler method.
+
+1️⃣ When is the Object Created?
+- Spring creates the object of @ModelAttribute in two main ways:
+
+A. Using a Method with @ModelAttribute:
+If you define a method annotated with @ModelAttribute, it is executed before any request handler method (@RequestMapping) in the same controller (or globally if in @ControllerAdvice).
+
+@Controller
+public class MyWebsiteController {
+
+    @ModelAttribute("websiteInfo")
+    public WebsiteInfoDTO getWebsiteInfo() {
+        System.out.println("Inside @ModelAttribute method: getWebsiteInfo()");
+
+        WebsiteInfoDTO websiteInfoDTO = new WebsiteInfoDTO();
+        websiteInfoDTO.setWebsiteName("Udemy.com");
+        websiteInfoDTO.setWebsiteCategory("Education");
+
+        return websiteInfoDTO;  // Spring stores this object in Model
+    }
+}
+
+📌 What happens?
+- Before calling any request handler (@RequestMapping method), Spring calls getWebsiteInfo().
+- The returned object (websiteInfoDTO) is stored in the model with the name "websiteInfo".
+- Now, this object can be used in any handler method within the same controller.
+
+2️⃣ How is the Object Injected into the Handler Method?
+
+Once an object is in the Model, Spring automatically injects it into the handler method parameter if you use @ModelAttribute("name").
+
+@Controller
+public class TestController {
+
+    @RequestMapping("/testing")
+    public String test(@ModelAttribute("websiteInfo") WebsiteInfoDTO webDto) {
+        System.out.println(webDto.getWebsiteName());  // Will print "Udemy.com"
+        System.out.println(webDto.getWebsiteCategory());  // Will print "Education"
+        return "index-website";
+    }
+}
+
+📌 What happens?
+1. Before calling test(), Spring checks if "websiteInfo" exists in the model.
+2. If found, it injects the object (WebsiteInfoDTO) into webDto.
+3. If not found, Spring creates a new empty object and injects it.
+
+---------------------------------------------------------------------------------------------
+
+3️⃣ What If the Object Is in a Different Controller?
+If the @ModelAttribute method is in a different controller, it won’t be available automatically.
+
+✅ Solution: Use @ControllerAdvice for Global Availability
+
+@ControllerAdvice
+public class GlobalControllerAdvice {
+
+    @ModelAttribute("websiteInfo")
+    public WebsiteInfoDTO getWebsiteInfo() {
+        WebsiteInfoDTO websiteInfoDTO = new WebsiteInfoDTO();
+        websiteInfoDTO.setWebsiteName("Udemy.com");
+        websiteInfoDTO.setWebsiteCategory("Education");
+        return websiteInfoDTO;
+    }
+}
+
+Now, websiteInfo will be automatically available in all controllers.
+
+📝 Summary
+1. Spring first looks for a method annotated with @ModelAttribute("name").
+2. It calls this method before handling any request and adds the object to the model.
+3. If a request handler method has a parameter with @ModelAttribute("name"), Spring injects the object from the model.
+4. If the object isn't found, Spring creates a new empty instance and injects it.
+5. To share across controllers, use @ControllerAdvice.
+
+
+

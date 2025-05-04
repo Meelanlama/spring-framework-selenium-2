@@ -1,0 +1,47 @@
+	MVC: 
+
+CONTROLLER: LoginServlet
+BUSINESS SERVICE: AuthenticationService
+MODEL: AuthenticationResult
+VIEW: Sucess Page, Login Page
+
+How to redirect from one page to another?
+
+//redirecting is sending outside the application
+response.sendRedirect("");
+response.sendRedirect("https://www.google.com");
+
+ //in forwarding url does not changes but in redirecting url change
+ //forwarding the jsp, when enterting the servletName url it forwards to that jsp
+getServletContext().getRequestDispatcher("/Footballers.jsp").forward(request, response);
+
+DTO = DATA TRANSFER OBJECT
+
+//Saving user data in session and call that session from jsp
+ User user = loginService.getUserDetails(userId);
+ request.getSession().setAttribute("user", user);
+
+//RequestDispatcher Object
+we need to pass the request and response object
+
+RequestDispatcher dispatcher = request.getRequestDispatcher("success.jsp");
+dispatcher.forward(request, response);
+
+once it takes request and response and forward to the new resouce we have success.jsp
+the jsp will get same request and response as the servlet method.
+
+And that passing of request and reponse will be available in success.jsp as well and we don't need to get/save it from session as it's available in request object itself.
+
+// EXPLANATION:
+
+RequestDispatcher dispatcher = request.getRequestDispatcher("success.jsp");
+dispatcher.forward(request, response);
+
+The RequestDispatcher forwards the request and response to another resource (like success.jsp) on the server itself without informing the browser, allowing the next resource to handle or display the data without changing the browser's URL.
+
+The browser still sees the original servlet's URL, as the forward is handled entirely on the server side.
+
+// url doesn't change as it doesn't show sucess.jsp
+
+
+

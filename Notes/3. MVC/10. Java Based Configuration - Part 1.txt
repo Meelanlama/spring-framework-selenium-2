@@ -1,0 +1,38 @@
+Questions:
+
+1. What is a dispatcher servlet?
+
+Dispatcher servlet is a front controller which routes to the particular controller respective of the url mentioned. All the incoming requests goes through the dispatcher servlet. The dispatcher servlet contains WebApplicationContext which expects for the configuration file in order to create ioc container with beans.
+
+2. What is an application context?
+
+In standalone application we use application context in order to create ioc container with beans.
+
+3. What is an webapplicationcontext?
+
+In Spring we changed to webApplicationContext which extends application context with additional features.It's basically interface for the container.
+
+4. What is IOC Container?
+
+The beans(java object) which created,stored and managed by in ioc container.
+
+5. What is a view Resolver?
+
+Whenever we return a name of the view from a handler method we have to mention the entire path. So,this becomes hard when we need to change the location of the view files..so we move on to view resolver which automatically adds prefix and suffix to the view name returned and makes it easier to locate.
+
+6. Dispatcher servlet has its own web application context?True or false?
+When dispatcherservlet(web.xml) is initialised by tomcat, it will look for configuration file and read this file and create WebApplicationContext.
+We can create different dispatcherservlet for same project.
+Every dispatcherservlet has it's own webapplicaton context.
+True
+
+7. How spring mvc works in xml way?
+
+In xml file we give component scan to search all @Controller inside a package....so the incoming request goes to that particular controller ....next we get any data attached to the url through request object...we do all the processes and redirect the request to view..if u want to send some data to view we can use model.addAttribute(key,value) and use the key inside the view page.
+
+8. Annotations?
+
+The annotations i remember are @RequestMapping,@Responsebody,@Controller,@Component,@ComponentScan,@Autowired,@Qualifier,@Value,@Required,@Primary,@Bean,@Configuration
+
+
+

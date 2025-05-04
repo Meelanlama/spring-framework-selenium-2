@@ -1,0 +1,39 @@
+GOAL:
+1. Understand Important Spring MVC feature:
+-Spring MVC JAVA CONFIGURATION
+-EXCEPTION HANDLING
+-FORM VALIDATION
+-DATA BINDING
+-INTERCEPTORS
+
+2. It's not just a spring mvc course:
+- Spring core
+- Spring mvc
+- Spring JDBC
+- SPRING AOP
+- SPRING SECURITY
+
+3.TOOLS - MAVEN AND GIT
+
+4. MODULES- SPRING ORM,REST
+
+We're going to make 2 application: One from scratch and second application enhancement and defect fix.
+
+// What we are going to achieve?
+- Spring mvc hands on
+- Get real time exposure
+- debugging technique/working with tools
+- handle different scenarios and challenges
+ 
+-- Now, Eligibitly for self learning..
+-- And once course is complete Jump to Spring Boot it'll be easy
+
+// RULES TO FOLLOW
+
+- JUST DON'T WATCH,CODE IT.
+- DO ANALYSIS BEFORE YOU CODE. JUST DON'T TYPE.
+- DON'T GIVE UP. ASK FOR HELP
+- Things will not work in one shot!! TRY
+- SOME VIDEOS WILL BE LONG TAKE BREAKS WHILE LEARNING.
+
+ 

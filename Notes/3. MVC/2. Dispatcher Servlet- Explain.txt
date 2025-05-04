@@ -1,0 +1,82 @@
+The Dispatcher Servlet is a central component in the Spring MVC framework, acting as the front controller that coordinates the request-handling process in a Java web application. Here's a structured breakdown of its role and functionality:
+
+Key Responsibilities:
+
+1.Request Handling Entry Point:
+
+- Receives all incoming HTTP requests (configured via URL patterns like / in web.xml or auto-configured in Spring Boot).
+- Serves as the single entry point for the application, adhering to the front controller design pattern.
+
+2. Delegation to Components:
+
+- Handler Mapping: Determines which controller method should handle the request (e.g., based on URL, annotations like @RequestMapping).
+- Handler Adapter: Executes the controller method (e.g., methods annotated with @GetMapping).
+- View Resolution: Uses a ViewResolver to map logical view names (e.g., "home") to actual view templates (JSP, Thymeleaf).
+- Model Processing: Passes model data from controllers to views for rendering.
+
+3. Response Generation:
+
+- For traditional MVC: Renders views (HTML) using resolved templates and model data.
+- For REST APIs: Uses HttpMessageConverter to serialize data (e.g., JSON/XML) directly into the response body (bypassing views when using @RestController).
+
+//Workflow Summary:
+
+1.Request Received: Dispatcher Servlet intercepts the HTTP request.
+
+2.Determine Handler: Uses HandlerMapping to find the appropriate controller method.
+
+3.Execute Handler: HandlerAdapter invokes the controller method, which returns a ModelAndView or data (for REST).
+
+4.Process Response:
+-For views: Resolves the view name to a template via ViewResolver and renders it.
+-For REST: Converts return values to HTTP response format (JSON/XML) using message converters.
+
+5.Response Sent: Final output is returned to the client.
+
+//Configuration:
+
+- Traditional Setup: Defined in web.xml with URL mappings.
+
+- Spring Boot: Auto-configured with default settings (e.g., mapped to /).
+
+//Key Components It Manages:
+
+-HandlerMapping: Maps requests to handlers (controllers).
+
+-HandlerAdapter: Executes handlers (controller methods).
+
+-ViewResolver: Resolves view names to templates.
+
+-HandlerExceptionResolver: Handles exceptions during request processing.
+
+-LocaleResolver: Manages internationalization.
+
+//Example Flow:
+
+User visits /products.
+
+Dispatcher Servlet routes the request to a ProductController method via @GetMapping("/products").
+
+Controller fetches data and returns a view name "product-list".
+
+Dispatcher Servlet uses ViewResolver to locate product-list.jsp, renders it with model data, and returns HTML.
+
+// Importance:
+Centralizes Control: Simplifies request routing, reducing boilerplate code.
+
+Modular and Extensible: Components like ViewResolver or HandlerMapping can be customized.
+
+Supports Both MVC and REST: Flexible for web pages or APIs.
+
+//
+The @GetMapping annotation in Spring MVC is a shortcut that maps HTTP GET requests to a specific method in your controller class. In simple terms:
+
+What It Does:
+Links a URL path (like /hello) to a method in your controller.
+
+When a user visits that URL in their browser (or sends a GET request), Spring runs the method you annotated with @GetMapping.
+
+--
+@GetMapping is equivalent to @RequestMapping(method = RequestMethod.GET) but shorter and clearer.
+
+

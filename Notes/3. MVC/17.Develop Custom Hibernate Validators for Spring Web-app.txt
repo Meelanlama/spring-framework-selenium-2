@@ -1,0 +1,189 @@
+There are different ways to build custom validators. Today we will develop custom validators using the JSR 303/ 349/ 380. We will use the hibernate validators / Java bean validation API as the dependency.
+Our goal is here to create some annotations like @Size, @NotNull, @NotBlank. In this video, we will create an annotation called @Age to validate the age field of our project.
+
+Below are the contents we will be covering in this tutorial.
+
+Part 1:
+Bean Validation API [remaining] : 06:09
+Create Custom Annotation[Theory] : 15:05
+Java Retention Policy : 21:10
+Custom Validation constraint[Theory] : 29:27
+
+Part 2:
+The 20 Minutes Challenge: 32:56
+Looking into Hibernate Validator source code
+@Size/ @NotBlank Source code Analysis: 34:53
+Understanding the Resource bundle: 45:16
+
+Part 3:
+Developing @Age annotation: 55:50
+Writing a validation constraint class: 01:03:27
+Implementing the logic: 01:11:24
+
+Part 4:
+Let's Debug:  01:30:35
+An important scenario : 01:36:14
+
+Part 5:
+Configuring properties file with our app(Analysis) 01:39:07
+Adding a properties file : 01:45:35
+Implementing the MessageSource bean/ResourceBundleMessageSource : 01:48:19
+Implementing LocalValidatorFactoryBean :02:01:47
+Wrapping up with assignment: 02:08:35
+
+//
+First learn and see others developer code and learn from it. 1.Learning 2.Go through others code. 3.Implement the code.
+
+// Bean Validation API - THEORY:
+
+@NotNull, @Email, @Min, @Max, @Future, @Past, @NotBlank, @Size, @AssertTrue - Comes in a validation api package by default
+
+--- Let's see a requirement for business rule:
+Phone Number must be 10 digits. If user enters less than 10 digits then give error and can only allow digits. Don't allow null.
+
+Do we have a @Phone annotation? - No, we have to Create a custom validator/annotation.
+
+-- Create custom validator @AgeValidator: we have to use @interface keyword
+
+- Business rule: Age should be between 30-40, Criteria: If the age is 35+ check if the user has bp and diabetes.
+To write a logic create class.
+
+@AgeValidator(lower=30, upper=40, message= "age should be between 30-40")
+private Integer age;
+
+--
+@Constraint(VALIDATED BY = AgeValidatorConstraint.CLASS) - Looks for the class where logic is written
+@TARGET(ElementType.FIELD,ElementType.METHOD,ElementType.PARAMETER,ElementType.CONSTRUCTOR,ElementType.LOCAL_VARIABLE,ElementType.PACKAGE) - Where can we apply the annotation
+@RETENTION(RetentionPolicy.RUNTIME) - // till what point our annotation will work/retained till runtime.
+public @interface AgeValidator{
+int lower() default 18;
+int upper() default 50;
+String message() default "age should be 18-50"; //compulsory
+
+}
+
+-- 
+class AgeValidatorConstraint{
+//Write logic
+
+}
+
+Part 2: ANALYSIS	
+// GOING TO THE EXISITING/INTERNAL ANNOTATION CODE/Analysis:
+
+@Constraint(
+    validatedBy = {}
+)
+
+--class: NotBlank is also annotation.
+public class NotBlankValidator implements ConstraintValidator<NotBlank, CharSequence> {
+
+validatedBy is empty but it'll find the validator class internally using ConstraintHelper class.
+
+ String message() default "{jakarta.validation.constraints.Size.message}";
+
+- jakarta.validation.constraints.Size.message = size must be between {min} and {max} -> if default message is not overided/provided by user but size is given.
+
+// 
+If we are developing any annotation then these two line should be copied, they are mandatory:
+
+Class<?>[] groups() default {};
+Class<? extends Payload>[] payload() default {};
+
+//
+PART 3: LET'S CREATE CUSTOM VALIDATION
+
+// SPRING WILL AUTOMATICALLY DETECT THIS CLASS BECAUSE IT IMPLEMENTS THAT INTERFACE
+public class AgeValidator implements ConstraintValidator<Age, Integer>
+
+@Valid, BindingResult bindingResult -> insert this in the controller if validation is needed
+
+
+//
+Part 5: Fetching message from default/custom properties files.
+Configuring properties file with our app(Analysis) 01:39:07
+--
+String message() default "{jakarta.validation.constraints.NotBlank.message}"; // getting message from default
+
+--
+Let's create a custom properties file in resouce folder.
+
+String message() default "{invalidAgeMessage}";
+
+--- message.properties:
+invalidAgeMessage = Age should be between {lower} and {upper}
+
+//
+--Inorder to load the properties file in spring, create bean in config file and tell that bean about the properties file.
+The properties files are called resource bundles. To load the resource bundles, spring provides an interface called MessageSource.
+				
+					MessageSource(Interface)
+ 						||
+ResourceBundleMessageSource(Implemented Class)		ReloadableResourceBundleMessageSource(Implemented class)
+
+We will use these classes to load our properties file.
+-- This properties file is for validator so we need to add validator bean for the file
+
+    // go to properties files, need to tell spring explicitly
+    @Bean
+   public MessageSource messageSource(){
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages"); // messages is a name of properties files name
+        return messageSource;
+    }
+
+    // defining validator and telling spring look for the messageSource having properties file
+    @Bean
+    public LocalValidatorFactoryBean validator(){
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.setValidationMessageSource(messageSource());
+
+        return validator;
+    }
+
+    //returning the validator we have created
+    @Override
+    public Validator getValidator() {
+        return validator();
+    }
+
+
+// ASSIGNMENT:
+
+--- Let's see a requirement for business rule:
+Phone Number must be 10 digits. If user enters less than 10 digits then give error and can only allow digits. Don't allow null.
+
+Do we have a @PhoneAnno annotation? - No, we have to Create a custom validator/annotation. 
+Let's create @PhoneAnno
+
+---
+Yes, you should add the @PhoneAnno annotation to the userNumber field in the Phone class:
+
+public class Phone {
+    private String countryCode;
+    @PhoneAnno
+    private String userNumber;
+
+---
+Dimag kharab voo mero.. Tyo 2 otai  class ko instance variable ma @Valid anno halna parni raixa jata jata phone link xa
+
+public class RegisterInfoDTO {
+
+ @Valid
+    private CommunicationDTO communicationDTO;
+}
+
+public class CommunicationDTO {
+    private String email = "lamameelan@gmail.com";
+    @Valid
+    private Phone phone;
+
+Tyo 2 otai class ko 
+
+-- 
+ADD: in messageSource method
+
+// for reading 2 properties file: for age and phoneNumber.
+messageSource.setBasenames("messages","phoneMessage"); // messages is a name of properties files name
+
+

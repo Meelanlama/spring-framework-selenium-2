@@ -1,0 +1,25 @@
+// SETTING PREFIX AND SUFFIX USING JAVA
+
+InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+viewResolver.setPrefix("/WEB-INF/view/");
+viewResolver.setSuffix(".jsp");
+
+// SETTING PREFIX AND SUFFIX USING SPRING
+
+<bean id = "viewResolver" class = "InternalResourceViewResolver">
+<property name = "prefix" value = "/WEB-INF/view/" />
+<property name = "suffix" value = ".jsp" />
+</bean>
+
+Now, the physical address is constructed by the view resolver which is:
+
+return NIKEFootball;
+
+"/WEB-INF/view/NIKEFootball.jsp"
+
+-- THE dispatcher servlet will get the location and give it back to client.
+
+// Question:
+So here is a question. Does your controller require code changes, If your project UI technology is getting changed? Replay yes or no to this comment with a valid explanation.
+
+Ans: No, our controller doesn't require code changes as we should only give file name in the controller and in spring config file/dispatcher servlet XML file we should update the prefix and suffix the file is changed. Update prefix if location is changed and suffix for file extension.

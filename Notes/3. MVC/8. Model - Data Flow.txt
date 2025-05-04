@@ -1,0 +1,64 @@
+Model means data. We can get data from database and users(from form). 
+
+// Component scanning for controllers in that package and registering it in the spring web application.
+
+<context:component-scan base-package="controllers,mycafe.controllers"/>
+
+// This our controller
+
+@Controller
+public class MyCafeControllers {
+
+    @RequestMapping("/cafe")
+    public String showWelcomePage(Model model ){
+	//sending data to view(jsp page)
+        String myName = "Milan";
+	model.addAttribute("myNameValue", myName);
+
+        return "welcome-page";
+    }
+}
+
+Now,let's get some data... and send the data from controller to view.
+Goal is to understand the flow data is processed in Spring MVC.
+
+To send data to view by using object called Model, create object of Model:
+
+Model model = new Model();
+model.addAttribute("myNameValue", myName);
+
+Now, the model attribute will be available in view/jsp page. 
+We can access that data in the view using-- ${value_name}  //${myNameValue}.
+
+//Redirecting user to different page called processOrder when using submit.
+
+<form action="processOrder" method="post">
+<h1>Welcome to ${cafeNameValue}</h1>
+<p>Your favorite place for coffee and delicious treats.</p>
+
+<hr>
+<label for="food">Item Name:</label>
+<input type="text" id="food" name="foodType" placeholder = "Food Type">
+<input type="submit" value="Order">
+
+</form>
+
+-- FLOW OF DATA
+
+// This controller job is to display the food ordered from the welcome page..
+    @RequestMapping("/processOrder")
+    public String processOrder() {
+        return "process-order";
+    }
+
+We have process-order jsp file created in view..
+
+Now this controller will display that processOrder page when we submit that form..
+
+--- <form action="processOrder" method="post">
+The action="processOrder" attribute tells the form to send its data to the /processOrder endpoint when the form is submitted.
+
+Uses the POST Method
+The method="post" attribute ensures that the form data is sent using the HTTP POST method, which is commonly used for submitting data that modifies the server state (e.g., creating an order).
+
+

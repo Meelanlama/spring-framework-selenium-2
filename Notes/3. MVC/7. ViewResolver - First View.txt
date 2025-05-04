@@ -1,0 +1,43 @@
+When @ReponseBody is not found in method then it'll asume the return details(String) of method as the webpage/view.
+
+// HARD CODING THE VIEW PATH
+
+ @RequestMapping("/football")
+    public String giveFootball(){
+        return "/WEB-INF/view/NIKEFootball.jsp";
+        // return "/WEB-INF/view/NIKEFootball.html";
+
+    }
+
+Now, instead of returning the string, the method will return the view/ jsp file.
+This is a bad approach and it's not using the Spring MVC properly.
+
+//My boss told me to change the path at first and then change file extension again.
+
+If the path of the view/jsp is changed then from all the controllers path should be changed manually.
+If the file extension is also changed from .jsp to .html then all the extension should be changed manually from controller.
+
+//Project Manager called me and asked me i have noticed you have changed the file path and extension previously, you don't know Spring MVC.
+
+//
+
+Using ViewResolver, Now you don't need to tightly couple the path and extension in controller.
+If the path and extension is changed but file name remains same then using ViewResolver can help in this scenario.
+
+--
+@RequestMapping("/football")
+    public String giveFootball(){
+        return "NIKEFootball";
+    }
+
+Now, just return page name only.
+
+// When client enters the url /home.com/football and the DispatcherServlet ask the controller and it returns the page back to the dispatcher servlet NIKEFootball but the frontController doesn't know its path and extension.
+
+So, We use View Resolver to solve this issue and it gives the path and extension to DispatcherServlet and it gives view back to client.
+
+"/WEB-INF/view/NIKEFootball.jsp"; 
+-> first path is 'prefix' - /WEB-INF/view/
+-> second extension is 'suffix'  - .jsp
+
+

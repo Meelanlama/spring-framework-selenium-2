@@ -1,0 +1,123 @@
+TOPIC TO DO:
+Spring MVC form validation introduction:
+Why Serverside validation?
+Client-side vs Server-side validation:
+What is JSR/JCP?
+Introduction to bean validation API : 
+Spring MVC/ Spring Boot Form Validation hands-on:
+Using the client-side and the server-side validation together:
+Designing the terms and condition checkbox for our app:
+
+The Bean Validation API is the key concept that we are going to learn today. When we work in a web application, we need to do the form validation to make sure our business logic satisfies.
+To perform the bean validation/ form validation, we need the JSR 303/349/380.
+
+//
+1. INTRODUCTION CLIENT-SIDE vs SERVER-SIDE:
+When i am deploying my website from my computer via tomcat and another user enteres url of my site, he gets a form in our website and that form is desgined using HTML,CSS AND JAVASCRIPT AND THIS IS CALLED CLIENTSIDE because his webbrowser can invoke all that script/code and load the form in his computer screen.
+
+When he enters details in the form and submit. It's also is in URL passed as Query String. That query string is sent to server side/my computer. And i have written code to handle the query string. And convert that query string to java object(name = "Milan", email = "lamameelan32@gmail.com") and send that object to database and save iniside it. Before you send the object to DB and save we need to validate that datas, are they valid?
+
+Objects are created using DTO class by mapping/binding the user entered data. Before mapping/binding we need to validate the data. 
+This is called form/bean validation.
+
+//
+2.Why we need Serverside validation if we can validate in client side?
+We need client validation in front end code and server validation in backend code.
+
+Analaysis: What happens if we only depend on client side validation? 
+
+Restrict the user and give validation error if textbox is empty while submitting.
+
+--
+Write a javascript function to validate onsubmit="return validateUserName()" in form which returns true or false.
+
+// Client side validation using js
+
+<script type="text/javascript" >
+        function validateUserName(){
+            // Fetching the data and storing in variable
+            var userName = document.getElementById('yourName').value;
+            var crushName = document.getElementById('crushName').value;
+
+            if(userName.length < 3 || crushName.length < 3){
+                alert('Invalid username or crush name');
+                return false;
+            }else {
+                return true;
+            }
+        }
+    </script>
+
+// Only clientside validation is not enough.. because in browser we can change html code and disable javascript via developer tools. So, we need to validate in server side if client fails.
+
+Bean validation/Form validation in Spring will handle it in server side.
+
+//What is JSR/JCP?
+JSR (Java Specification Request) is a formal proposal for adding new features or updates to Java. It goes through a review and approval process by the JCP (Java Community Process), which is responsible for evolving the Java platform.
+
+The JCP (Java Community Process) is an open, collaborative mechanism that allows developers, organizations, and experts to participate in defining Java standards through JSRs.
+
+-----
+//How to do server side validaton?
+Introducing to bean validation API - JSR 303,349,380 / HIBERNATE VALIDATOR : 
+
+Hibernate validator is the implementation to bean validation API(JSR)
+
+Now, let's do server side validation.
+--
+At first, Add hibernate-validator dependency in maven
+
+ @NotBlank(message = "Enter a valid name")
+ @Size(min = 3, max = 15, message = "* Your name should have at least 3 char and 15 char max")
+ private String userName;
+
+@Min shouldnt be used in name. it's helpful in cinema ticket and age.
+
+@Valid annotation will help us to trigger the bean that captures/bind the data. This should be before @ModelAttribute and dto and Binding Result should be after the dto.
+BindingResult result- whatever results will come, we'll store it here
+
+Example:
+
+@RequestMapping("/process-homepage")
+    public String showResultPage(@Valid @ModelAttribute("userInfo") UserInfoDTO userInfoDTO, BindingResult result) {
+
+        //checks if there's any error and not submitted properly and print that error in console
+        if (result.hasErrors()) {
+            result.getAllErrors().forEach(error -> System.out.println(error.getDefaultMessage()));
+            return "home-page";
+        }
+        return "result-page";
+    }
+
+-- <form:errors path="userName" cssClass="error"/> <%-- Display errors by side in the form --%>
+
+//
+DIMAG KHARAB VO MEROOOO, @EnableWebMvc annotation halya thena config file ma so validation navayera khojya khojei error last ma yo raixa.
+
+In summary:
+@EnableWebMvc is crucial for enabling Spring MVC features, including validation.
+It registers the components that handle data binding and validation.
+If you're not using Spring Boot's default auto-configuration, you must explicitly add @EnableWebMvc to your configuration class.
+
+// Using the client-side and the server-side validation together:
+
+Client-side validation will trigger first before server-side validation. If clientside validation fails then server side will trigger
+
+Qsn: // If we're doing server side validation then why the client side validation is needed?
+
+Ans: Client-side validation is needed to provide instant feedback to the user, improve user experience, and reduce unnecessary server load. While server-side validation ensures data integrity and security, client-side validation helps catch simple errors (like empty fields or incorrect formats) before the form is submitted to the server, making the process faster and smoother.
+
+// Designing the terms and condition checkbox for our app: If it's not checked then restrict the user to use the site and not redirect to next page.
+Show form validation error if not checked.
+
+-- FORM:  <p>
+        <form:checkbox id="tnc" path="termsAndConditions"/>
+        <label for="tnc">I am agreeing this is only for fun</label>
+    </p>
+
+@AssertTrue(message = "* You have to agree to our terms and conditions to use our app")
+private boolean termsAndConditions;
+
+if the checkbox is selected then it returns true otherwise false. so @AssertTrue tells it should be true and check the box inorder to move to next page.
+
+

@@ -1,0 +1,33 @@
+Java code and Html. Static part will be displayed in website using html.
+
+<% Inside java %> - whatever code you write inside this script is rendered as java.
+
+how jsp works? its converted into java class by tomcat and executes that class and converts into the servlet.
+Servelts is generated when using jsp and kept in local temporary folder called work.
+
+//JSP Page Directives
+To include/embed another jsp file in jsp:
+<% include file ="/index.jsp"%>
+
+The basic difference between getAttribute() and getParameter() is that the first method extracts a (serialized) Java object and the other provides a String value.
+Thats why we use getArttribute in session() as it returns objects.
+
+// Retrieving value like servlet in jsp using request object.
+<% String name = request.getParameter("name"); %>
+
+request,session,application -> for request, session and context objects.
+
+ session.setAttribute("sessionUserName",name);
+ application.setAttribute("contextUserName",name);
+
+In jsp we no need to define it, can just directly setAttribute.
+
+//Now getting the attribute we set:
+The username in the session object is: <%= session.getAttribute("sessionUserName") %>
+<br>
+The username in the application context object is: 
+<%= application.getAttribute("contextUserName") %>
+
+//Using jspInit and InitParams: default parameter same as servlets:
+
+Creating servlet and mapping and giving init value in web.xml file.

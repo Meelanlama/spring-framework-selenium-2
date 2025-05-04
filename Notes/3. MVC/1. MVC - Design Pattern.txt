@@ -1,0 +1,61 @@
+Any engineering product has 3 key things:
+1. An User Interface
+2. Mechanism 
+3. Source/Storage
+
+Let's talk about mobile: display and it's called user interface because by using display we interact with the internal system. Mobile has also internal system which has cpu,gpu and this internal is not shown to user and its the brain of the system and its controlling the whole flow of mobile. And mobile phone has Storage to store datas.
+
+//TV
+We can view different channel in TV screen. If we want to see CNN channel then, inside the mechanism of TV, it calls the antena/source to get us the channel. and that source gets the CNN channel back and gives to mechanism and the mechanism displays the CNN channel
+
+TV DISPLAY - VIEW, (user is seeing)
+INTERNAL MECHANISM - CONTROLLER (Somebody working as mediator betn view and controller)
+ANTENA - MODEL(Which stores the data)
+
+Model doesn't know the view and view doesn't know model.
+
+// IMPORTANT
+
+Web browser sending request to controller(servlet) and controller says to model pass data and the model pass back data to controller. And the controller has the data with it and send/process the data to view(front end) and when view has all data, it generate all the data with view  and pass back to web browser.
+
+// 2. MVC BEST PRACTICES
+
+public class MyController extends HttpServlet {
+	doGet(...){}
+
+//Business logic
+//Get the data from the model
+//Forward data to the JSP/html page
+//NO UI code here
+}
+
+===
+view(){
+
+//put the UI CODE 
+//Get and organise the controller data
+// avoid using business code inside view
+
+}
+
+===
+model(){
+//TALK TO DATABASE,LIST
+//GET THE DATA FROM DB,LIST
+
+getDataMethod(){}
+
+}
+
+//DEVELOPMENT CHECKLIST
+
+1. CREATE CONTROLLER SERVLET (FoodCart.java)
+2. CREATE View page (show-food.jsp)
+3. Create a helper class to talk to the model (FoodCartDbUtil)
+4. Pull them all together
+
+
+
+
+
+

@@ -1,0 +1,40 @@
+Spring creates and populates the UserInfoDTO object using Spring MVC’s data binding mechanism, which works through reflection and WebDataBinder. Here's how:
+
+Step-by-Step Process:
+
+1.Detects the Method Parameter (UserInfoDTO userInfoDTO)
+
+- When a request comes to /process-homepage, Spring sees UserInfoDTO as a parameter in the controller method.
+- It checks if this class has a default constructor (needed for object creation).
+
+2.Creates an Instance Using Reflection
+
+- Spring uses Java Reflection to instantiate UserInfoDTO.
+- Equivalent to: UserInfoDTO userInfoDTO = new UserInfoDTO();  // Default constructor
+
+3. Extracts Request Parameters
+
+- If the request URL is:
+/process-homepage?name=John&age=25
+
+- Spring extracts query parameters from the request.
+
+4. Populates the Object Using Setter Methods (Data Binding)
+
+- Spring maps request parameters to corresponding fields in UserInfoDTO by calling setter methods:
+userInfoDTO.setName("John");  // Sets 'name' field
+userInfoDTO.setAge(25);       // Sets 'age' field
+
+5. Adds the Object to the Model
+
+model.addAttribute("userInfo", userInfoDTO); stores the object, making it accessible in the view (result-page).
+
+------------------------------------------------------------------------------------
+Behind the Scenes:
+
+Spring uses WebDataBinder to map HTTP parameters to Java objects, which happens automatically when:
+
+- The parameter is a POJO (Plain Old Java Object).
+- Field names match request parameter names.
+- Getters and setters exist.
+- This is how Spring magically creates and fills UserInfoDTO! 🚀

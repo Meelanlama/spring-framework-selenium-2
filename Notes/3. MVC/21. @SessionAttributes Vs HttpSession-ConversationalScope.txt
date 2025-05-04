@@ -1,0 +1,273 @@
+Hi there! In this video, we are going to master Session Management with @SessionAttributes. Well, Today I will introduce to you a term called Conversational Scope.
+The Conversational Scope Is longer than the request scope but shorter than the Session Scope.
+So, what is a conversational scope? 
+Should a developer choose the conversational scope over the session scope? 
+To get clarity, I will be comparing The Request Scope(with Model) with the Conversational Scope and Session Scope.
+If you are pretty new to session management and cookies, you may watch my Session And Cookies with Spring Framework tutorial. This tutorial also get yous started with @SessionAttributes.
+
+// What is a request scope?
+Opening a browser, entering url, request goes to server, server handles the request and it sends response back. Sending the request and getting the response back from the server, this time is called request scope.
+
+Model model -> model.addAttribute("obj1",Object1);
+Model is also a part of a request scope. So, Object1 is inside the model and request scope. Once the request is handled, Model object will be destroyed.
+
+There are two scope: 
+1. request scope which will be destroyed once request is handled.
+2. Session scope which will hold the information.
+
+///
+Example:
+Model object cannot get the object From one controller to another because it'll be a new request for the second controller and model obj will be destoryed once the first request of controller is handled. That model object will return null. 
+
+@Controller
+@RequestMapping("/first")
+    public String handleMethod1(Model model) {
+        model.addAttribute("firstName", "Milan");
+        model.addAttribute("lastName", "Tamang");
+        return "index-session";
+    }
+
+ @RequestMapping("/second")
+    public String handleMethod2(Model model1) {
+
+        String firstName = (String) model1.getAttribute("firstName");
+        System.out.println(firstName); //null, trying to fetch the data from first controller but model object will be deleted.
+        return "index-session";
+}
+
+----------------------------------------------
+//Example:
+
+@Controller
+@SesionAttributes("obj1")
+class Controller{
+@RequestMapping("/abc")
+public String(Model m1){
+m1.addAttribute("obj1",Object1);
+return "view";
+}
+}
+
+Explain of the code: 
+The request scope will have Object1 inside it as Model is also a part of a request scope and Object1 will be destroyed once request is handled.
+So, the @SesionAttributes("obj1") is also adding object1 and will be still in session and available to all the controllers.
+
+//Example: 
+
+@Controller
+@SesionAttributes("obj1")
+class Controller{
+@RequestMapping("/abc")
+public String m1(Model m1){
+m1.addAttribute("obj1",Object1);
+m1.addAttribute("obj2",Object2);
+return "view";
+}
+}
+
+Explain of the code: 
+Object 1 and 2 will be destoryed in request scope once the request is handled.
+But,Only Object 1 will be inside will be inside the session scope.
+
+//Example:
+
+Now, we have another method inside the same controller class: 
+And this method m2 is also part of the same controller. When request comes to /bbb the Object1 from session scope stored from previous method will be pushed inside this method in request scope. And once the request is handled the request scope will be destroyed of this method too. But it'll still be there in session scope.
+
+@Requestmapping("/bbb"){
+public String m2(Model m2){
+m2.getAttribute("obj1"); // We'll get the Object1 from request scope as its pushed by session scope
+return "view1";
+}
+}
+
+
+//Example:
+
+@SessionAttributes("firstName")
+@Controller
+@RequestMapping("/first")
+    public String handleMethod1(Model model) {
+        model.addAttribute("firstName", "Milan");
+        model.addAttribute("lastName", "Tamang");
+        return "index-session";
+    }
+
+ @RequestMapping("/second")
+    public String handleMethod2(Model model1) {
+
+        String firstName = (String) model1.getAttribute("firstName");
+        System.out.println(firstName); //Prints Milan from the model/requestscope.
+        return "index-session";
+}
+
+
+<p>FirstName: ${firstName}</p>
+
+// Here, firstName will be inside the session scope and, when /second url is entered. the firstName will be also pushed inside the request scope from the session scope, there'll be two firstName: inside requestscope and session scope too. 
+
+Question: From where it'll get the value of firstName in second controller? From model(request scope) or session scope?
+Answer: The first priority will go the requestscope and it's retrieved from request scope where it's available, if it's not available there then only it'll go to session scope.
+
+//How to prove that {firstName} is present inside both request and session scope?
+
+<p>First Name Request: ${requestScope.firstName} </p>
+
+<p>First Name Session: ${sessionScope.firstName} </p>
+
+Here the firstname is available in both request and session scope, so it will give priority to requestscope and fetch from the model.
+
+// DO i need to add model.addAttribute?
+model1.addAttribute("firstName", firstName);
+model1.addAttribute("lastName", lastName);
+
+No, we don't need to add it, we'll get it from request scope/model as its available inside model object because session will push to request scope if it's available.
+
+//Example 4:
+Let's add one method to our controller class.
+
+@SessionAttributes({"firstName","lastName"})
+@Controller
+ @RequestMapping("/third")
+    public String handleMethod3(Model model2) {
+
+        String lastName = (String) model2.getAttribute("lastName");
+        model2.addAttribute("lastName", lastName); // will print lastName(Tamang) from model/request scope as, it's available in session scope and it'll push to requestscope.
+
+        return "index-session";
+    }
+
+
+Task: Let's make the link dynamic. When we are on the first page link: nextpage(/second),When we are on the second page link: nextpage(/third)
+
+Add these models in two controller;
+        model.addAttribute("next", "second");
+        model1.addAttribute("next", "third");
+
+<a href="/spring_love_calculator/${next}">Next Page</a> //calling dynamically
+Now, we'll also fetch the firstName in third page, as it will retrieved from the session scope, while last name will be  retrieved from request scope.
+
+//INTRODUCTION TO CONVERSATIONAL SCOPE:
+
+Developer has the control over scope where it'll begin and end. It is more than the request scope, when to begin the scope and when to end it. This is called conversational scope.
+
+Inside the second(/second) controller:
+
+SessionStatus sessionStatus
+
+//removing the session attributes from the session scope
+        sessionStatus.setComplete();
+
+Ending the session scope and won't be getting the object in third controller as it can't push from session scope.
+
+----------------------------------------------
+
+//What does the SesionAttributes documents tell?
+Only use @SesionAttributes tag in one controller only and don't try to fetch the value of it from another controllers like we did .And it might cause big bugs.
+
+They always prefer use normal HTTP Session(session.setAttribute) if we want to access session objects inside different controllers.
+
+//
+Why should we use normal HTTP Session?
+As, we can get session object inside same controller class within different methods.And imagine we have sessionStatus.setComplete(); code in one controller of different class that removes the object from session scope.We'll get error
+If we try to access that object inside session scope from different controller class method, than spring won't push that object to request method. It returns null in model but It will be available in the view because it will look inside request scope(model) it won't be there and again it will search in session scope inside the view.
+
+It's because @SesionAttributes is designed for conversational scope/design.And, it's limited only to 1 Controller Class.
+
+----------------------------------------------
+Then,How can we access that session scope object from different controllers class?
+Using @SesionAttribute to capture that value.
+
+Example: Getting session object value from another controller class
+
+@Controller
+public class SecondController {
+
+    @RequestMapping("/anotherMethod")
+    public String handleMethod3(Model model) {
+
+        String firstName = (String) model.getAttribute("firstName");
+System.out.println("Inside SecondController method: Fetching from model:" + firstName); // will return null, because it won't be available in model as session won't push to request object
+        return "index-session";
+    }
+}
+
+But the object value will be available in view page by fetching from session scope after request object(model) has null value.
+
+You can test this by using these code in view:
+
+<p>First Name Request: ${requestScope.firstName} </p> // will return null
+ 
+<p>First Name Session: ${sessionScope.firstName} </p> // will give firstname from session scope
+
+----------------------------------------------
+
+//INTRODUCING @SesionAttribute
+
+Example: Here we are fetching firstName using @SesionAttribute from the session and adding it in the model(request scope).
+
+    @RequestMapping("/anotherMethod")
+    public String handleMethod3(@SessionAttribute("firstName") String firstName,Model model) {
+
+        String newFirstName = "Mr." + firstName;
+
+        model.addAttribute("firstName", newFirstName);
+
+        System.out.println("Inside SecondController method: Fetching from model:" + firstName); //Prints Milan
+        return "index-session";
+    }
+
+From the above code in view:
+
+p>FirstName: ${firstName}</p> //Mr.Milan
+<p>LastName: ${lastName}</p> //Tamang
+ 
+<p>First Name From Request(Model): ${requestScope.firstName} </p> //Mr.Milan
+
+<p>First Name From Session: ${sessionScope.firstName} </p> //Milan
+
+Previously we were not getting object from model.
+
+// So why it's not recommended to use in different controller class?
+
+Because developer can stop the session scope or remove the session attributes by sessionStatus.setComplete(); in one controller class, and the other controller class dependent on that session will be null and can give exception erros/bug. So, it's not recommened to use for permanent session and only use for single controller / specific handler.
+
+To use permanent session use session.setAttribute().
+     
+//So, how can we store in permanent session / long term? Which should we use
+Ans: Use HttpSession
+
+- Inside the first method,(Setting the session)
+
+HttpServletRequest request)
+
+HttpSession session = request.getSession();
+session.setAttribute("address","Kathmandu");
+
+- Inside the third method: (Getting that session)
+
+//fetching from the session and doing some changes and adding in model.
+       String address = (String) session.getAttribute("address");
+       String newAddress = address + ",Gokarneshowr-2";
+       model2.addAttribute("address", newAddress);
+
+// SessionStatus sessionStatus
+
+//removing the session attributes from the session scope
+ sessionStatus.setComplete();
+ 
+This won't remove the SESSION object of the normal HttpSession -> session.setAttribute("address","Kathmandu"); -> address won't be removed.
+But it'll remove @SessionAttributes({"firstName","lastName"}) objects. 
+
+HTTP SESSION AND @SESSIONATTRIBUTES ARE NOT SAME AND MANAGED DIFFERENTLY.
+IN @SESSIONATTRIBUTES we're only adding the Model objects like: model.addAttribute("firstName", "Milan"); // there is restirction can add only model.
+But in Normal HTTP SESSION, WE CAN ADD ANYTHING: OBJECTS, MODEL OBJECTS.
+
+If we want to remove objects from HTTP SESSION THEN:
+
+session.invalidate(); //removing from normal session.
+
+
+
+
+

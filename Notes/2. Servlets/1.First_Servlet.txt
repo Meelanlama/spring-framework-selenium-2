@@ -1,0 +1,55 @@
+http://localhost:8080/give_name that is deployed on the tomcat instance.
+
+Servlet is a java class.Tomcat is also a container.And tomcat is gonna run servlet and runs on VM.
+
+Servlet won't have a main method.
+It extends HttpServlet that is superclass.
+
+ @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("SimpleServlet doGet ");
+    }
+
+When you enter that servlet value url inside container it only prints in console.
+
+--response is where you send html to the client side.
+
+response.setContentType("text/html");
+PrintWriter out = response.getWriter();
+
+// Understanding the Servlet.
+
+request is HttpServletRequest object that takes from url and gives us the servlet/webcontainer that matches the url name.
+
+//The POST Method and Passing Parameters
+
+--- Passing parameters in url in doGet() Method:
+
+?userName=Milan
+
+http://localhost:8080/JavaBrains_Servlets_war_exploded/xml?userName=Milan
+
+protected void doGet(HttpServletRequest request, HttpServletResponse response){
+String username = request.getParameter("userName"); 
+//here taking that request parameter using request object and storing
+out.println("Hello from the GET method " + username + ".");
+}
+
+// 
+Another way of passing parameter is by using POST Parameter in doPost() Method.
+IN POST, parameter is passed by using a form.
+
+<form method="post" action="xmlServlet">
+    <input name = "userName"/>
+    <input type="submit"/>
+</form>
+
+protected void doPost(HttpServletRequest request, HttpServletResponse response){
+String username = request.getParameter("userName");
+out.println("Hello from the POST method " + username + ".");
+}
+
+Now when using POST,you don't see the query parameters in the url like the get method.
+The request has gone inside the request of http body and not in url. This is difference between GET AND POST method.
+IN GET METHOD YOU SEE THE PARAMETERS IN URL AND IN POST IT GOES INSIDE THE REQUEST HTTP BODY.
+

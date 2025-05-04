@@ -1,0 +1,45 @@
+TOPICS:
+-SETTING UP DISPATCHER SERVLET(APPROACH 2)
+-DISPATCHER SERVLET INITIALIZATION BEHIND THE SCENE(SPRING INTERNAL WALKTHROUGH)
+-DELETE WEB.XML(MAVEN CONFIGURATION AND BUG FIXES)
+
+------
+//SETTING UP DISPATCHERSERVLET(APPROACH 2)
+
+Force spring to create dispatcherservlet for us.
+
+public class Lc_AppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class[0];
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        Class arr[] = {LoveCalculatorAppConfig.class};
+        return arr;
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        String mappings[] = {"/mywebsite.com/*"};
+        return mappings;
+    }
+}
+
+In approach 1, we have full control over the dispatcherservlet object. Behind the scene, spring will create dispatcherservlet object for us in approach 2. 
+Internally approach 2 will be working exactly similiar to approach 1.
+
+// Question: How is spring creating DispatcherServlet object internally?
+Ans:
+AbstractAnnotationConfigDispatcherServletInitializer class extends AbstractDispatcherServletInitializer class and again this class extends AbstractContextLoaderInitializer implements WebApplicationInitializer.
+
+// How is Spring creating the DispatcherServlet object behind the scene?
+By using registerDispathcerServlet() method which is already writtten inside the AbstractDispatcherServletInitializer class.
+
+----
+// Maven Configuration
+Clean install, add dependency, try if you're stuck.
+
+

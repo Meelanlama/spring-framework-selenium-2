@@ -1,0 +1,187 @@
+TOPICS:
+Dealing with nested objects. Why formatter?
+Print() and Parse() deep dive
+Problem solving in real time. Writing a formatter in real time
+Assignment
+Start using debugger- (How are our program flows)
+
+//DATABINDING WITH NESTED OBJECTS
+
+- Adding a communication channel(Phone and email textbox) to our app
+- Add Email and phone in Registration DTO class and that textbox in our view page, but this is wrong, WHY?
+Because we need email and phone in contact us and about us page. So we need to create a new DTO class for communication.
+
+Let's add CommunicationDTO class to the RegistrationDTO
+// good practice, instead of creating email phone in all dto class
+
+private CommunicationDTO communicationDTO; // generate getters and setters
+
+//Data binding email of another dto class
+<form:input type="email" id="email" path="communicationDTO.email"/>
+
+communicationDTO.email- This is nested object, email inside another object
+// Internally, getCommunicationDTO().getEmail()
+
+capturing data: <p>Your email is : ${captureInfo.communicationDTO.email}</p>
+
+// Let's add phone to CommunicationDTO
+
+    private Phone phone; // we create different Phone class for phoneNumber because of country code.
+
+For phone number we want only one textbox for both country code and usernumber: 977-9863837952
+
+It'll give us error: cannot convert the phonenumber with countrycode.
+[Field error in object 'captureInfo' on field 'communicationDTO.phone': rejected value [977-9863837952]; codes [typeMismatch.captureInfo.communicationDTO.phone,typeMismatch.communicationDTO.phone,typeMismatch.phone,typeMismatch.com.milan.api.Phone,typeMismatch]; d]] ]
+
+//Spring cannot convert internally bind the phone because it's not int or string type as its CommunicationDTO object type, so cannot convert so you have to tell explicitly tell country code and user number to bind.
+Use Formatter and extract the countryCode and number and store it using phone object.
+User will enter the phone number as string, we have to convert that string into Phone object type and store that in database in phone object type.
+
+// How to Tell Spring MVC we are using a formatter?
+
+Implement WEbMvcConfigurer interface in a config class to tell we're using formatter
+
+public class LoveCalculatorAppConfig implements WebMvcConfigurer {
+
+ @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addFormatter(new PhoneNumberFormatter());
+    }
+}
+
+// Why Formatter is needed?
+By implementing interface called formatter interface.
+
+public interface Formatter<T> extends Printer<T>, Parser<T> {} - A formatter is a both printer and a parser.
+
+Now, lets convert the String object of phonenumber to Phone type using parser.
+
+public class PhoneNumberFormatter implements Formatter<Phone> {
+
+//Using the parse method to convert String object to Phone object
+@Override
+    public Phone parse(String completePhoneNumber, Locale locale) throws ParseException {
+
+	//Split the string received from the user
+        // Will get two array[0,1], one will get code and another number
+        String[] phoneNumbers = completePhoneNumber.split("-");
+
+        //Extract the countryCode and set it to the phone class countryCode/fullNumber variable
+        Phone phone = new Phone();
+        phone.setCountryCode(phoneNumbers[0]);
+        phone.setUserNumber(phoneNumbers[1]);
+
+        return phone;
+        
+    }
+}
+
+// The parse method in formatter helps us to convert one data type into another type.
+
+// If the user is already registered then, we're going to load all his data entered previously and he can edit it.
+
+// USAGE OF PRINT METHOD:
+
+ //load the saved user data from the database
+        Phone phone = new Phone();
+        phone.setCountryCode("977");
+        phone.setUserNumber("123456789");
+
+        CommunicationDTO communicationDTO = new CommunicationDTO();
+        communicationDTO.setPhone(phone);
+
+        registerDto.setCommunicationDTO(communicationDTO);
+
+
+Print method of formatter will convert the object of Phone to String type,bind the loaded or saved data and show in view page.
+
+@Override
+    public String print(Phone phoneObject, Locale locale) {
+        return phoneObject.getCountryCode() + "-" + phoneObject.getUserNumber();
+    }
+
+
+// 
+The two methods serve opposite purposes in Formatter<Phone>:
+
+print(Phone phoneObject, Locale locale) → Converts a Phone object to a string (for display/output). print() is for output (formatting).
+Usage: When displaying a phone number in a UI or response.
+Example: new Phone("+1", "1234567890") → "+1-1234567890"
+
+parse(String text, Locale locale) → Converts a string to a Phone object (for input/parsing). parse() is for input (parsing user input into an object).
+Usage: When parsing user input (e.g., from forms, API requests).
+Example: "+1-1234567890" → new Phone("+1", "1234567890")
+
+// Let's fix some bugs: 
+//ERROR IF COUNTRY CODE IS NOT SUBMITTED
+phone.setUserNumber(phoneNumbers[1]); // will get array index out of bounds error 
+java.lang.IndexOutOfBoundsException : Invalid array range: 1 to 1
+
+If user is not providing country code then our program breaks, add default country code if it's not provided..
+
+-----
+public Phone parse(String completePhoneNumber, Locale locale) throws ParseException {
+Phone phone = new Phone();
+
+//Split the string phone number received from the user
+// Will get two array[0,1], one will get code and another number
+	String[] phoneNumbers = completePhoneNumber.split("-");
+
+//whether the number consists of - which is country code
+       int index = completePhoneNumber.indexOf('-');
+
+        // if - country code is not found which returns -1 index then add 977 as default country code
+        if(index == -1){
+           phone.setCountryCode("977");
+           phone.setUserNumber(phoneNumbers[0]);
+
+       }
+       else {
+            //Extract the countryCode and set it to the phone class countryCode/fullNumber variable
+            phone.setCountryCode(phoneNumbers[0]);
+           phone.setUserNumber(phoneNumbers[1]);
+       }
+        return phone;
+    }
+
+// ASSIGNMENT ONE (FIX A DEFECT):
+
+When user is enterting -12345678, country code will be null. So, we should fix this and add default country code.
+
+Add:
+//
+if(index == -1 || completePhoneNumber.startsWith("-")){
+           phone.setCountryCode("977");
+           if(index == -1){
+               phone.setUserNumber(phoneNumbers[0]);
+           } else {
+               phone.setUserNumber(phoneNumbers[1]);
+           }
+
+
+// ASSIGNMENT TWO (STORY):
+
+DESGIN BILL SCREEN IN VIEW: ADD credit card number and amount.
+
+CREDIT NUMBER TEXTBOX SHOULD BE 16 WITH - IN EACH 4 NUMBER.
+BILL NUMBER TEXTBOX SHOULD BE IN : 10 EURO/DOLLAR. -> Generate euro string to sign in view while capturing
+
+-- WRITE TWO FORMATTER CREDIT CARD FORMATTER AND CURRENCY FORMATTER/CONVERTER LOCALE
+
+// Wait for a twist
+
+If a user is not entering a phonenumber for communication, at first it'll go to parse method of formatter before the processUserRegister controller.
+So, will it give an error? It won't break and will directly go to controller method instead of formatter. It will only parse/print when it need to parse something or when there's value.
+
+Number will be null so will it format in phonenumber formatter
+So use:
+
+  if (completePhoneNumber == null || completePhoneNumber.isEmpty()) {
+            // Handle invalid input scenario
+            phone.setCountryCode("977"); // Default country code
+            phone.setUserNumber(""); // Empty number
+            return phone;
+        }
+
+
+
